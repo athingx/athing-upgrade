@@ -1,4 +1,4 @@
-module athing.upgrade.thing.test {
+open module athing.upgrade.thing.test {
 
     requires junit;
     requires athing.thing.api;

@@ -1,8 +1,8 @@
 package io.github.athingx.athing.upgrade.thing.impl;
 
 import io.github.athingx.athing.thing.api.Thing;
+import io.github.athingx.athing.upgrade.thing.impl.domain.Meta;
 import io.github.athingx.athing.upgrade.thing.impl.domain.Process;
-import io.github.athingx.athing.upgrade.thing.impl.domain.Push;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,12 +12,12 @@ public class UpgradeProcessorImpl implements UpgradeProcessor {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Thing thing;
-    private final Push push;
+    private final Meta meta;
     private volatile int current;
 
-    public UpgradeProcessorImpl(Thing thing, Push push) {
+    public UpgradeProcessorImpl(Thing thing, Meta meta) {
         this.thing = thing;
-        this.push = push;
+        this.meta = meta;
     }
 
     @Override
@@ -30,14 +30,13 @@ public class UpgradeProcessorImpl implements UpgradeProcessor {
 
         current = step;
         final var token = thing.op().genToken();
-        final var meta = push.meta();
         final var process = new Process(token, meta.moduleId(), step, desc);
         thing.op().data("/ota/device/progress/%s/".formatted(thing.path().toURN()), process)
                 .whenComplete(whenCompleted(
-                        (v) -> logger.debug("{}/upgrade/process processing success, token={};push={};module={};version={};step={};",
-                                thing.path(), token, push.token(), meta.moduleId(), meta.version(), step),
-                        (ex) -> logger.warn("{}/upgrade/process processing failure, token={};push={};module={};version={};step={};",
-                                thing.path(), token, push.token(), meta.moduleId(), meta.version(), step)
+                        (v) -> logger.debug("{}/upgrade/process processing success, token={};module={};version={};step={};",
+                                thing.path(), token, meta.moduleId(), meta.version(), step),
+                        (ex) -> logger.warn("{}/upgrade/process processing failure, token={};module={};version={};step={};",
+                                thing.path(), token, meta.moduleId(), meta.version(), step)
                 ));
 
     }

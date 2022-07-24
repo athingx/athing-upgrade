@@ -4,9 +4,9 @@ import com.google.gson.annotations.SerializedName;
 import io.github.athingx.athing.thing.api.op.OpData;
 
 /**
- * 更新模块版本
+ * 模块通告
  */
-public class Update implements OpData {
+public class Inform implements OpData {
 
     @SerializedName("id")
     private final String token;
@@ -14,7 +14,14 @@ public class Update implements OpData {
     @SerializedName("params")
     private final Param param;
 
-    public Update(String token, String moduleId, String version) {
+    /**
+     * 模块通告
+     *
+     * @param token    令牌
+     * @param moduleId 模块ID
+     * @param version  模块版本
+     */
+    public Inform(String token, String moduleId, String version) {
         this.token = token;
         this.param = new Param(moduleId, version);
     }

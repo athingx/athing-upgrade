@@ -6,7 +6,7 @@ import io.github.athingx.athing.thing.api.op.OpBinding;
 import io.github.athingx.athing.thing.api.op.OpGroupBind;
 import io.github.athingx.athing.upgrade.thing.UpgradeListener;
 import io.github.athingx.athing.upgrade.thing.builder.ThingUpgradeOption;
-import io.github.athingx.athing.upgrade.thing.impl.Updater;
+import io.github.athingx.athing.upgrade.thing.impl.Informer;
 import io.github.athingx.athing.upgrade.thing.impl.UpgradeImpl;
 import io.github.athingx.athing.upgrade.thing.impl.UpgradeProcessorImpl;
 import io.github.athingx.athing.upgrade.thing.impl.domain.Push;
@@ -28,13 +28,13 @@ public class BindingForPush implements OpBinding<OpBinder> {
     private final Thing thing;
     private final ThingUpgradeOption option;
     private final Set<UpgradeListener> listeners;
-    private final Updater updater;
+    private final Informer informer;
 
-    public BindingForPush(Thing thing, ThingUpgradeOption option, Set<UpgradeListener> listeners, Updater updater) {
+    public BindingForPush(Thing thing, ThingUpgradeOption option, Set<UpgradeListener> listeners, Informer informer) {
         this.thing = thing;
         this.option = option;
         this.listeners = listeners;
-        this.updater = updater;
+        this.informer = informer;
     }
 
     @Override
@@ -44,7 +44,7 @@ public class BindingForPush implements OpBinding<OpBinder> {
                 .map(mappingJsonToType(Push.class))
                 .bind((topic, push) -> {
                     final var meta = push.meta();
-                    final var process = new UpgradeProcessorImpl(thing, push);
+                    final var process = new UpgradeProcessorImpl(thing, meta);
                     final var upgrade = new UpgradeImpl(thing, meta, option, process);
 
                     // receive
@@ -76,7 +76,7 @@ public class BindingForPush implements OpBinding<OpBinder> {
                     }
 
                     // commit
-                    updater.update(meta.moduleId(), meta.version())
+                    informer.inform(meta.moduleId(), meta.version())
                             .whenComplete(whenCompleted(
                                     (v) -> logger.debug("{}/update/push commit success, push={};module={};version={};",
                                             thing.path(), push.token(), meta.moduleId(), meta.version()),
