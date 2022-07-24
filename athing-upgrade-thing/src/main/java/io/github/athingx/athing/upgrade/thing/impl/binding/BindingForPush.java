@@ -16,9 +16,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import static io.github.athingx.athing.thing.api.function.ThingFnMapJson.mappingJsonFromBytes;
-import static io.github.athingx.athing.thing.api.function.ThingFnMapJson.mappingJsonToType;
-import static io.github.athingx.athing.thing.api.util.CompletableFutureUtils.whenCompleted;
+import static io.github.athingx.athing.thing.api.function.CompletableFutureFn.whenCompleted;
+import static io.github.athingx.athing.thing.api.function.ThingFn.mappingJsonFromByte;
+import static io.github.athingx.athing.thing.api.function.ThingFn.mappingJsonToType;
 import static io.github.athingx.athing.upgrade.thing.impl.UpgradeProcessor.Step.STEP_UPGRADES_FAILURE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -40,7 +40,7 @@ public class BindingForPush implements OpBinding<OpBinder> {
     @Override
     public CompletableFuture<OpBinder> binding(OpGroupBind group) {
         return group.bind("/ota/device/upgrade/%s".formatted(thing.path().toURN()))
-                .map(mappingJsonFromBytes(UTF_8))
+                .map(mappingJsonFromByte(UTF_8))
                 .map(mappingJsonToType(Push.class))
                 .bind((topic, push) -> {
                     final var meta = push.meta();

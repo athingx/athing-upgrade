@@ -1,12 +1,13 @@
 package io.github.athingx.athing.upgrade.thing.impl;
 
 import io.github.athingx.athing.thing.api.Thing;
-import io.github.athingx.athing.thing.api.util.CompletableFutureUtils;
 import io.github.athingx.athing.upgrade.thing.impl.domain.Inform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
+
+import static io.github.athingx.athing.thing.api.function.CompletableFutureFn.whenCompleted;
 
 public class InformerImpl implements Informer {
 
@@ -26,7 +27,7 @@ public class InformerImpl implements Informer {
                         moduleId,
                         version
                 ))
-                .whenComplete(CompletableFutureUtils.whenCompleted(
+                .whenComplete(whenCompleted(
                         (v) -> logger.debug("{}/upgrade/update success, token={};module={};version={};",
                                 thing.path(), token, moduleId, version),
                         (ex) -> logger.warn("{}/upgrade/update failure, token={};module={};version={};",

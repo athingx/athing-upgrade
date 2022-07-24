@@ -16,8 +16,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
-import static io.github.athingx.athing.thing.api.function.ThingFnMapJson.mappingJsonFromBytes;
-import static io.github.athingx.athing.thing.api.function.ThingFnMapOpReply.mappingOpReplyFromJson;
+import static io.github.athingx.athing.thing.api.function.ThingFn.mappingJsonFromByte;
+import static io.github.athingx.athing.thing.api.function.ThingFn.mappingJsonToOpReply;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class BindingForPull implements OpBinding<OpCaller<Pull, OpReply<Upgrade>>> {
@@ -34,8 +34,8 @@ public class BindingForPull implements OpBinding<OpCaller<Pull, OpReply<Upgrade>
     @Override
     public CompletableFuture<OpCaller<Pull, OpReply<Upgrade>>> binding(OpGroupBind group) {
         return group.bind("/sys/%s/thing/ota/firmware/get_reply".formatted(thing.path().toURN()))
-                .map(mappingJsonFromBytes(UTF_8))
-                .map(mappingOpReplyFromJson(Meta.class))
+                .map(mappingJsonFromByte(UTF_8))
+                .map(mappingJsonToOpReply(Meta.class))
                 .call((topic, reply) -> OpReply.reply(
                         reply.token(),
                         reply.code(),

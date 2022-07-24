@@ -12,7 +12,7 @@ public class ThingUpgradeTestCase extends ThingUpgradeSupport {
 
     @Before
     public void test$before() throws Exception {
-        // thingUpgrade.inform("resource", "1.0.0").get();
+        thingUpgrade.inform("resource", "1.0.0").get();
     }
 
     @Test

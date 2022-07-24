@@ -6,7 +6,7 @@ import io.github.athingx.athing.upgrade.thing.impl.domain.Process;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static io.github.athingx.athing.thing.api.util.CompletableFutureUtils.whenCompleted;
+import static io.github.athingx.athing.thing.api.function.CompletableFutureFn.whenCompleted;
 
 public class UpgradeProcessorImpl implements UpgradeProcessor {
 

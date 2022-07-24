@@ -1,7 +1,7 @@
 package io.github.athingx.athing.upgrade.thing.impl;
 
 import io.github.athingx.athing.thing.api.Thing;
-import io.github.athingx.athing.thing.api.util.CompletableFutureUtils;
+import io.github.athingx.athing.thing.api.function.CompletableFutureFn;
 import io.github.athingx.athing.upgrade.thing.Upgrade;
 import io.github.athingx.athing.upgrade.thing.builder.ThingUpgradeOption;
 import io.github.athingx.athing.upgrade.thing.impl.domain.Meta;
@@ -14,7 +14,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static io.github.athingx.athing.thing.api.util.CompletableFutureUtils.tryCatchExecute;
+import static io.github.athingx.athing.thing.api.function.CompletableFutureFn.tryCatchExecute;
 import static io.github.athingx.athing.upgrade.thing.impl.UpgradeProcessor.Step.*;
 import static java.lang.String.format;
 
@@ -25,7 +25,7 @@ public class UpgradeImpl implements Upgrade {
 
     public UpgradeImpl(Thing thing, Meta meta, ThingUpgradeOption option, UpgradeProcessor processor) {
         this.meta = meta;
-        this.future = tryCatchExecute(new CompletableFutureUtils.Executable<>() {
+        this.future = tryCatchExecute(new CompletableFutureFn.Executable<>() {
 
             /**
              * 下载升级包文件

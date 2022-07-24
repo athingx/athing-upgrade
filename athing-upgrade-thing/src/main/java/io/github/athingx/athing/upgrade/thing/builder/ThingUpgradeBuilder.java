@@ -3,8 +3,8 @@ package io.github.athingx.athing.upgrade.thing.builder;
 import io.github.athingx.athing.thing.api.Thing;
 import io.github.athingx.athing.upgrade.thing.ThingUpgrade;
 import io.github.athingx.athing.upgrade.thing.UpgradeListener;
-import io.github.athingx.athing.upgrade.thing.impl.ThingUpgradeImpl;
 import io.github.athingx.athing.upgrade.thing.impl.InformerImpl;
+import io.github.athingx.athing.upgrade.thing.impl.ThingUpgradeImpl;
 import io.github.athingx.athing.upgrade.thing.impl.binding.BindingForPull;
 import io.github.athingx.athing.upgrade.thing.impl.binding.BindingForPush;
 
@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static io.github.athingx.athing.thing.api.util.CompletableFutureUtils.tryCatchCompleted;
+import static io.github.athingx.athing.thing.api.function.CompletableFutureFn.tryCatchComplete;
 
 public class ThingUpgradeBuilder {
 
@@ -44,7 +44,7 @@ public class ThingUpgradeBuilder {
 
         return group
                 .commit()
-                .thenCompose(binder -> tryCatchCompleted(() -> new ThingUpgradeImpl(
+                .thenCompose(binder -> tryCatchComplete(() -> new ThingUpgradeImpl(
                         thing,
                         updater,
                         listeners,
