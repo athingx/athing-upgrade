@@ -9,6 +9,13 @@ import java.util.concurrent.CompletableFuture;
 public interface Upgrade {
 
     /**
+     * 是否有更新
+     *
+     * @return TRUE | FALSE
+     */
+    boolean isUpdated();
+
+    /**
      * 获取模块ID
      *
      * @return 模块ID

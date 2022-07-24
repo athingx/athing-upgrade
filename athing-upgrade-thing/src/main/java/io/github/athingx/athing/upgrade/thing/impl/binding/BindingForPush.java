@@ -55,6 +55,18 @@ public class BindingForPush implements OpBinding<OpBinder> {
                             meta.version()
                     );
 
+                    // 如果没配置监听器，则返回升级失败
+                    if (listeners.isEmpty()) {
+                        logger.warn("{}/upgrade/push give up: none-listener, push={};module={};version={};",
+                                thing.path(),
+                                push.token(),
+                                meta.moduleId(),
+                                meta.version()
+                        );
+                        process.processing(STEP_UPGRADES_FAILURE, "none-listener");
+                        return;
+                    }
+
                     // apply
                     try {
                         listeners.forEach(listener -> listener.apply(upgrade));

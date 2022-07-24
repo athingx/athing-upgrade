@@ -28,9 +28,9 @@ public class InformerImpl implements Informer {
                         version
                 ))
                 .whenComplete(whenCompleted(
-                        (v) -> logger.debug("{}/upgrade/update success, token={};module={};version={};",
+                        (v) -> logger.debug("{}/upgrade/inform success, token={};module={};version={};",
                                 thing.path(), token, moduleId, version),
-                        (ex) -> logger.warn("{}/upgrade/update failure, token={};module={};version={};",
+                        (ex) -> logger.warn("{}/upgrade/inform failure, token={};module={};version={};",
                                 thing.path(), token, moduleId, version, ex)
                 ));
     }

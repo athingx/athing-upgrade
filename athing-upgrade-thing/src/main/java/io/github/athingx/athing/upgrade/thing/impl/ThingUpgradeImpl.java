@@ -11,6 +11,8 @@ import io.github.athingx.athing.upgrade.thing.impl.domain.Pull;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
+
 public class ThingUpgradeImpl implements ThingUpgrade {
 
     private final Thing thing;
@@ -45,14 +47,17 @@ public class ThingUpgradeImpl implements ThingUpgrade {
     public CompletableFuture<Void> update(String moduleId) {
         return fetch(moduleId)
                 .thenApply(OpReply::data)
-                .thenApply(upgrade -> {
-                    listeners.forEach(listener -> listener.apply(upgrade));
-                    return upgrade;
-                })
-                .thenCompose(upgrade -> informer.inform(
-                        upgrade.getModuleId(),
-                        upgrade.getVersion()
-                ));
+                .thenCompose(upgrade -> {
+                    if (upgrade.isUpdated() && !listeners.isEmpty()) {
+                        listeners.forEach(listener -> listener.apply(upgrade));
+                        return informer.inform(
+                                upgrade.getModuleId(),
+                                upgrade.getVersion()
+                        );
+                    } else {
+                        return completedFuture(null);
+                    }
+                });
     }
 
     @Override

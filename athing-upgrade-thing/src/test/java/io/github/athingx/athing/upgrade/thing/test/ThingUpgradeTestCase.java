@@ -20,11 +20,11 @@ public class ThingUpgradeTestCase extends ThingUpgradeSupport {
 
         final var reply = thingUpgrade.fetch("resource").get();
         Assert.assertTrue(reply.isOk());
-        Assert.assertEquals("resource", reply.data().getModuleId());
-        Assert.assertTrue(reply.data().getSize() > 0);
-        Assert.assertNotNull(reply.data().getVersion());
-        Assert.assertNotNull(reply.data().getFile());
-
+        final var upgrade = reply.data();
+        Assert.assertEquals("resource", upgrade.getModuleId());
+        Assert.assertTrue(upgrade.getSize() > 0);
+        Assert.assertNotNull(upgrade.getVersion());
+        Assert.assertNotNull(upgrade.getFile());
     }
 
     @Test

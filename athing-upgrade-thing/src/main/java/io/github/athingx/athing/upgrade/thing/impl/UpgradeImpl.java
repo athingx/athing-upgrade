@@ -38,11 +38,11 @@ public class UpgradeImpl implements Upgrade {
 
                     // 创建临时文件
                     final File file = File.createTempFile(
-                            String.format("athing-modular_%s_%s-",
+                            String.format("athing-module_%s_%s-",
                                     meta.moduleId(),
                                     meta.upgradeMD5()
                             ),
-                            ".push"
+                            ".ota"
                     );
 
                     final AtomicInteger currentRef = new AtomicInteger(10);
@@ -108,6 +108,10 @@ public class UpgradeImpl implements Upgrade {
 
             @Override
             public void execute(CompletableFuture<File> future) {
+                if (!isUpdated()) {
+                    future.complete(null);
+                    return;
+                }
                 thing.executor().execute(() -> {
                     try {
                         future.complete(checksum(download()));
@@ -128,22 +132,37 @@ public class UpgradeImpl implements Upgrade {
 
 
     @Override
+    public boolean isUpdated() {
+        return null != meta;
+    }
+
+    private void checkUpdated() {
+        if (!isUpdated()) {
+            throw new IllegalStateException("not updated!");
+        }
+    }
+
+    @Override
     public String getModuleId() {
+        checkUpdated();
         return meta.moduleId();
     }
 
     @Override
     public String getVersion() {
+        checkUpdated();
         return meta.version();
     }
 
     @Override
     public long getSize() {
+        checkUpdated();
         return meta.size();
     }
 
     @Override
     public CompletableFuture<File> getFile() {
+        checkUpdated();
         return future;
     }
 

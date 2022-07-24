@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static io.github.athingx.athing.thing.api.function.CompletableFutureFn.whenCompleted;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 
 public class UpgradeProcessorImpl implements UpgradeProcessor {
 
@@ -25,6 +26,7 @@ public class UpgradeProcessorImpl implements UpgradeProcessor {
 
         // 如果当前步骤已经错误，或者已经大于上报步骤，则不执行上报
         if (current < 0 || current >= step) {
+            completedFuture(null);
             return;
         }
 
