@@ -13,6 +13,7 @@ public class ThingUpgradeTestCase extends ThingUpgradeSupport {
     @Before
     public void test$before() throws Exception {
         thingUpgrade.inform("resource", "1.0.0").get();
+        Thread.sleep(1000L * 5);
     }
 
     @Test
