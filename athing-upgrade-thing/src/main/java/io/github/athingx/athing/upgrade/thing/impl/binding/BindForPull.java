@@ -18,12 +18,12 @@ import static io.github.athingx.athing.thing.api.function.ThingFn.mappingJsonFro
 import static io.github.athingx.athing.thing.api.function.ThingFn.mappingJsonToOpReply;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class BindingForPull implements OpGroupBindFor<OpCall<Pull, OpReply<Upgrade>>> {
+public class BindForPull implements OpGroupBindFor<OpCall<Pull, OpReply<Upgrade>>> {
 
     private final Thing thing;
     private final ThingUpgradeOption option;
 
-    public BindingForPull(Thing thing, ThingUpgradeOption option) {
+    public BindForPull(Thing thing, ThingUpgradeOption option) {
         this.thing = thing;
         this.option = option;
     }

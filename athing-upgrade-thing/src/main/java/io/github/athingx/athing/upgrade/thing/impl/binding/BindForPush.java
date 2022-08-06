@@ -22,7 +22,7 @@ import static io.github.athingx.athing.thing.api.function.ThingFn.mappingJsonToT
 import static io.github.athingx.athing.upgrade.thing.impl.UpgradeProcessor.Step.STEP_UPGRADES_FAILURE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class BindingForPush implements OpGroupBindFor<OpBind> {
+public class BindForPush implements OpGroupBindFor<OpBind> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Thing thing;
@@ -30,7 +30,7 @@ public class BindingForPush implements OpGroupBindFor<OpBind> {
     private final Set<UpgradeListener> listeners;
     private final Informer informer;
 
-    public BindingForPush(Thing thing, ThingUpgradeOption option, Set<UpgradeListener> listeners, Informer informer) {
+    public BindForPush(Thing thing, ThingUpgradeOption option, Set<UpgradeListener> listeners, Informer informer) {
         this.thing = thing;
         this.option = option;
         this.listeners = listeners;

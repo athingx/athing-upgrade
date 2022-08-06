@@ -5,7 +5,7 @@ module athing.upgrade.thing {
 
     opens io.github.athingx.athing.upgrade.thing.impl.domain;
 
-    requires athing.thing.api;
+    requires transitive athing.thing.api;
     requires com.google.gson;
     requires org.slf4j;
 
