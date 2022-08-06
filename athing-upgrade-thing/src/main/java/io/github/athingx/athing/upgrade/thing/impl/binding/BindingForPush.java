@@ -1,9 +1,9 @@
 package io.github.athingx.athing.upgrade.thing.impl.binding;
 
 import io.github.athingx.athing.thing.api.Thing;
-import io.github.athingx.athing.thing.api.op.OpBinder;
-import io.github.athingx.athing.thing.api.op.OpBinding;
-import io.github.athingx.athing.thing.api.op.OpGroupBind;
+import io.github.athingx.athing.thing.api.op.OpBind;
+import io.github.athingx.athing.thing.api.op.OpGroupBindFor;
+import io.github.athingx.athing.thing.api.op.OpGroupBinding;
 import io.github.athingx.athing.upgrade.thing.UpgradeListener;
 import io.github.athingx.athing.upgrade.thing.builder.ThingUpgradeOption;
 import io.github.athingx.athing.upgrade.thing.impl.Informer;
@@ -22,7 +22,7 @@ import static io.github.athingx.athing.thing.api.function.ThingFn.mappingJsonToT
 import static io.github.athingx.athing.upgrade.thing.impl.UpgradeProcessor.Step.STEP_UPGRADES_FAILURE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class BindingForPush implements OpBinding<OpBinder> {
+public class BindingForPush implements OpGroupBindFor<OpBind> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Thing thing;
@@ -38,8 +38,8 @@ public class BindingForPush implements OpBinding<OpBinder> {
     }
 
     @Override
-    public CompletableFuture<OpBinder> binding(OpGroupBind group) {
-        return group.bind("/ota/device/upgrade/%s".formatted(thing.path().toURN()))
+    public CompletableFuture<OpBind> bindFor(OpGroupBinding group) {
+        return group.binding("/ota/device/upgrade/%s".formatted(thing.path().toURN()))
                 .map(mappingJsonFromByte(UTF_8))
                 .map(mappingJsonToType(Push.class))
                 .bind((topic, push) -> {

@@ -1,7 +1,7 @@
 package io.github.athingx.athing.upgrade.thing.impl;
 
 import io.github.athingx.athing.thing.api.Thing;
-import io.github.athingx.athing.thing.api.op.OpCaller;
+import io.github.athingx.athing.thing.api.op.OpCall;
 import io.github.athingx.athing.thing.api.op.OpReply;
 import io.github.athingx.athing.upgrade.thing.ThingUpgrade;
 import io.github.athingx.athing.upgrade.thing.Upgrade;
@@ -18,14 +18,14 @@ public class ThingUpgradeImpl implements ThingUpgrade {
     private final Thing thing;
     private final Informer informer;
     private final Set<UpgradeListener> listeners;
-    private final OpCaller<Pull, OpReply<Upgrade>> pullCaller;
+    private final OpCall<Pull, OpReply<Upgrade>> pullCall;
 
 
-    public ThingUpgradeImpl(Thing thing, Informer informer, Set<UpgradeListener> listeners, OpCaller<Pull, OpReply<Upgrade>> pullCaller) {
+    public ThingUpgradeImpl(Thing thing, Informer informer, Set<UpgradeListener> listeners, OpCall<Pull, OpReply<Upgrade>> pullCall) {
         this.thing = thing;
         this.informer = informer;
         this.listeners = listeners;
-        this.pullCaller = pullCaller;
+        this.pullCall = pullCall;
     }
 
     @Override
@@ -63,7 +63,7 @@ public class ThingUpgradeImpl implements ThingUpgrade {
     @Override
     public CompletableFuture<OpReply<Upgrade>> fetch(String moduleId) {
         final var token = thing.op().genToken();
-        return pullCaller.call(
+        return pullCall.calling(
                 "/sys/%s/thing/ota/firmware/get".formatted(thing.path().toURN()),
                 new Pull(token, moduleId)
         );

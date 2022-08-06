@@ -1,9 +1,9 @@
 package io.github.athingx.athing.upgrade.thing.impl.binding;
 
 import io.github.athingx.athing.thing.api.Thing;
-import io.github.athingx.athing.thing.api.op.OpBinding;
-import io.github.athingx.athing.thing.api.op.OpCaller;
-import io.github.athingx.athing.thing.api.op.OpGroupBind;
+import io.github.athingx.athing.thing.api.op.OpCall;
+import io.github.athingx.athing.thing.api.op.OpGroupBindFor;
+import io.github.athingx.athing.thing.api.op.OpGroupBinding;
 import io.github.athingx.athing.thing.api.op.OpReply;
 import io.github.athingx.athing.upgrade.thing.Upgrade;
 import io.github.athingx.athing.upgrade.thing.builder.ThingUpgradeOption;
@@ -11,8 +11,6 @@ import io.github.athingx.athing.upgrade.thing.impl.UpgradeImpl;
 import io.github.athingx.athing.upgrade.thing.impl.UpgradeProcessorImpl;
 import io.github.athingx.athing.upgrade.thing.impl.domain.Meta;
 import io.github.athingx.athing.upgrade.thing.impl.domain.Pull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -20,9 +18,8 @@ import static io.github.athingx.athing.thing.api.function.ThingFn.mappingJsonFro
 import static io.github.athingx.athing.thing.api.function.ThingFn.mappingJsonToOpReply;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class BindingForPull implements OpBinding<OpCaller<Pull, OpReply<Upgrade>>> {
+public class BindingForPull implements OpGroupBindFor<OpCall<Pull, OpReply<Upgrade>>> {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Thing thing;
     private final ThingUpgradeOption option;
 
@@ -32,8 +29,8 @@ public class BindingForPull implements OpBinding<OpCaller<Pull, OpReply<Upgrade>
     }
 
     @Override
-    public CompletableFuture<OpCaller<Pull, OpReply<Upgrade>>> binding(OpGroupBind group) {
-        return group.bind("/sys/%s/thing/ota/firmware/get_reply".formatted(thing.path().toURN()))
+    public CompletableFuture<OpCall<Pull, OpReply<Upgrade>>> bindFor(OpGroupBinding group) {
+        return group.binding("/sys/%s/thing/ota/firmware/get_reply".formatted(thing.path().toURN()))
                 .map(mappingJsonFromByte(UTF_8))
                 .map(mappingJsonToOpReply(Meta.class))
                 .call((topic, reply) -> OpReply.reply(

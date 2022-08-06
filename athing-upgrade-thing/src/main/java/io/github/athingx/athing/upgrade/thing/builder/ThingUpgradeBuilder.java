@@ -37,10 +37,10 @@ public class ThingUpgradeBuilder {
             listeners.add(listener);
         }
 
-        final var group = thing.op().group();
+        final var group = thing.op().binding();
         final var updater = new InformerImpl(thing);
-        group.binding(new BindingForPush(thing, option, listeners, updater));
-        final var pullCallerFuture = group.binding(new BindingForPull(thing, option));
+        group.bindFor(new BindingForPush(thing, option, listeners, updater));
+        final var pullCallFuture = group.bindFor(new BindingForPull(thing, option));
 
         return group
                 .commit()
@@ -48,7 +48,7 @@ public class ThingUpgradeBuilder {
                         thing,
                         updater,
                         listeners,
-                        pullCallerFuture.get()
+                        pullCallFuture.get()
                 )));
     }
 
