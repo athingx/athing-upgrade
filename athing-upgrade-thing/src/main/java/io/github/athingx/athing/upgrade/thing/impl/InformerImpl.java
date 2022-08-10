@@ -25,9 +25,9 @@ public class InformerImpl implements Informer {
         return thing.op()
                 .data("/ota/device/inform/%s".formatted(thing.path().toURN()), inform)
                 .whenComplete(whenCompleted(
-                        (v) -> logger.debug("{}/upgrade/inform success, token={};module={};version={};",
+                        v -> logger.debug("{}/upgrade/inform success, token={};module={};version={};",
                                 thing.path(), token, moduleId, version),
-                        (ex) -> logger.warn("{}/upgrade/inform failure, token={};module={};version={};",
+                        ex -> logger.warn("{}/upgrade/inform failure, token={};module={};version={};",
                                 thing.path(), token, moduleId, version, ex)
                 ));
     }
