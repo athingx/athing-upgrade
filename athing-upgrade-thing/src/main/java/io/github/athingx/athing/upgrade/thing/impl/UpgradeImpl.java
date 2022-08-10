@@ -13,6 +13,7 @@ import java.net.URL;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static io.github.athingx.athing.thing.api.function.CompletableFutureFn.tryCatchExecute;
 import static io.github.athingx.athing.upgrade.thing.impl.UpgradeProcessor.Step.*;
@@ -20,12 +21,52 @@ import static java.lang.String.format;
 
 public class UpgradeImpl implements Upgrade {
 
+    private final Thing thing;
     private final Meta meta;
-    private final CompletableFuture<File> future;
+    private final ThingUpgradeOption option;
+    private final UpgradeProcessor processor;
+    private final AtomicReference<CompletableFuture<File>> futureRef = new AtomicReference<>();
+
 
     public UpgradeImpl(Thing thing, Meta meta, ThingUpgradeOption option, UpgradeProcessor processor) {
+        this.thing = thing;
         this.meta = meta;
-        this.future = tryCatchExecute(new CompletableFutureFn.Executable<>() {
+        this.option = option;
+        this.processor = processor;
+    }
+
+
+    @Override
+    public boolean isUpdated() {
+        return null != meta;
+    }
+
+    private void checkUpdated() {
+        if (!isUpdated()) {
+            throw new IllegalStateException("not updated!");
+        }
+    }
+
+    @Override
+    public String getModuleId() {
+        checkUpdated();
+        return meta.moduleId();
+    }
+
+    @Override
+    public String getVersion() {
+        checkUpdated();
+        return meta.version();
+    }
+
+    @Override
+    public long getSize() {
+        checkUpdated();
+        return meta.size();
+    }
+
+    private CompletableFuture<File> initFuture() {
+        return tryCatchExecute(new CompletableFutureFn.Executable<>() {
 
             /**
              * 下载升级包文件
@@ -130,40 +171,19 @@ public class UpgradeImpl implements Upgrade {
         });
     }
 
-
-    @Override
-    public boolean isUpdated() {
-        return null != meta;
-    }
-
-    private void checkUpdated() {
-        if (!isUpdated()) {
-            throw new IllegalStateException("not updated!");
-        }
-    }
-
-    @Override
-    public String getModuleId() {
-        checkUpdated();
-        return meta.moduleId();
-    }
-
-    @Override
-    public String getVersion() {
-        checkUpdated();
-        return meta.version();
-    }
-
-    @Override
-    public long getSize() {
-        checkUpdated();
-        return meta.size();
-    }
-
     @Override
     public CompletableFuture<File> getFile() {
         checkUpdated();
-        return future;
+        var future = futureRef.get();
+        if (future != null) {
+            return future;
+        }
+        synchronized (this) {
+            if ((future = futureRef.get()) == null) {
+                futureRef.set(future = initFuture());
+            }
+            return future;
+        }
     }
 
 }

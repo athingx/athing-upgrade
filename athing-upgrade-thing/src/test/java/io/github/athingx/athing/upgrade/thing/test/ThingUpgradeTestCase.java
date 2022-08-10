@@ -1,11 +1,12 @@
 package io.github.athingx.athing.upgrade.thing.test;
 
 import io.github.athingx.athing.upgrade.thing.Upgrade;
+import io.github.athingx.athing.upgrade.thing.UpgradeListener;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class ThingUpgradeTestCase extends ThingUpgradeSupport {
@@ -31,21 +32,60 @@ public class ThingUpgradeTestCase extends ThingUpgradeSupport {
     @Test
     public void test$thing$upgrade$update() throws Exception {
 
-        final BlockingQueue<Upgrade> queue = new LinkedBlockingQueue<>();
-        thingUpgrade.appendListener(upgrade -> {
-            while (true) {
-                if (queue.offer(upgrade)) {
-                    break;
+        final var queue = new LinkedBlockingQueue<Upgrade>();
+        final var listener = new UpgradeListener() {
+
+            @Override
+            public void apply(Upgrade upgrade) {
+                while (true) {
+                    if (queue.offer(upgrade)) {
+                        break;
+                    }
                 }
             }
-        });
-        thingUpgrade.update("resource").get();
-        final Upgrade upgrade = queue.take();
-        Assert.assertNotNull(upgrade);
-        Assert.assertEquals("resource", upgrade.getModuleId());
-        Assert.assertNotNull(upgrade.getVersion());
-        Assert.assertTrue(upgrade.getSize() > 0);
-        Assert.assertNotNull(upgrade.getFile().get());
+        };
+        thingUpgrade.appendListener(listener);
+        try {
+            thingUpgrade.update("resource").get();
+            final Upgrade upgrade = queue.take();
+            Assert.assertNotNull(upgrade);
+            Assert.assertEquals("resource", upgrade.getModuleId());
+            Assert.assertNotNull(upgrade.getVersion());
+            Assert.assertTrue(upgrade.getSize() > 0);
+            Assert.assertNotNull(upgrade.getFile().get());
+        } finally {
+            thingUpgrade.removeListener(listener);
+        }
+
+    }
+
+    @Ignore
+    @Test
+    public void test$thing$upgrade$push() throws Exception {
+
+        final var queue = new LinkedBlockingQueue<Upgrade>();
+        final var listener = new UpgradeListener() {
+
+            @Override
+            public void apply(Upgrade upgrade) {
+                while (true) {
+                    if (queue.offer(upgrade)) {
+                        break;
+                    }
+                }
+            }
+        };
+        thingUpgrade.appendListener(listener);
+        try {
+            final Upgrade upgrade = queue.take();
+            Assert.assertNotNull(upgrade);
+            Assert.assertEquals("resource", upgrade.getModuleId());
+            Assert.assertNotNull(upgrade.getVersion());
+            Assert.assertTrue(upgrade.getSize() > 0);
+            Assert.assertNotNull(upgrade.getFile().get());
+        } finally {
+            thingUpgrade.removeListener(listener);
+        }
 
     }
 

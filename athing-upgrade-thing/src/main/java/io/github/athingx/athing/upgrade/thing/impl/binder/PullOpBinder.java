@@ -1,8 +1,8 @@
-package io.github.athingx.athing.upgrade.thing.impl.binding;
+package io.github.athingx.athing.upgrade.thing.impl.binder;
 
 import io.github.athingx.athing.thing.api.Thing;
 import io.github.athingx.athing.thing.api.op.OpCall;
-import io.github.athingx.athing.thing.api.op.OpGroupBindFor;
+import io.github.athingx.athing.thing.api.op.OpGroupBinder;
 import io.github.athingx.athing.thing.api.op.OpGroupBinding;
 import io.github.athingx.athing.thing.api.op.OpReply;
 import io.github.athingx.athing.upgrade.thing.Upgrade;
@@ -18,12 +18,12 @@ import static io.github.athingx.athing.thing.api.function.ThingFn.mappingJsonFro
 import static io.github.athingx.athing.thing.api.function.ThingFn.mappingJsonToOpReply;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class BindForPull implements OpGroupBindFor<OpCall<Pull, OpReply<Upgrade>>> {
+public class PullOpBinder implements OpGroupBinder<OpCall<Pull, OpReply<Upgrade>>> {
 
     private final Thing thing;
     private final ThingUpgradeOption option;
 
-    public BindForPull(Thing thing, ThingUpgradeOption option) {
+    public PullOpBinder(Thing thing, ThingUpgradeOption option) {
         this.thing = thing;
         this.option = option;
     }

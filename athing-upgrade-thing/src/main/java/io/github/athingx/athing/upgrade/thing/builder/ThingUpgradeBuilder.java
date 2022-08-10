@@ -5,8 +5,8 @@ import io.github.athingx.athing.upgrade.thing.ThingUpgrade;
 import io.github.athingx.athing.upgrade.thing.UpgradeListener;
 import io.github.athingx.athing.upgrade.thing.impl.InformerImpl;
 import io.github.athingx.athing.upgrade.thing.impl.ThingUpgradeImpl;
-import io.github.athingx.athing.upgrade.thing.impl.binding.BindForPull;
-import io.github.athingx.athing.upgrade.thing.impl.binding.BindForPush;
+import io.github.athingx.athing.upgrade.thing.impl.binder.PullOpBinder;
+import io.github.athingx.athing.upgrade.thing.impl.binder.PushOpBinder;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -39,8 +39,8 @@ public class ThingUpgradeBuilder {
 
         final var group = thing.op().binding();
         final var updater = new InformerImpl(thing);
-        group.bindFor(new BindForPush(thing, option, listeners, updater));
-        final var pullCallFuture = group.bindFor(new BindForPull(thing, option));
+        group.bindFor(new PushOpBinder(thing, option, listeners, updater));
+        final var pullCallFuture = group.bindFor(new PullOpBinder(thing, option));
 
         return group
                 .commit()
