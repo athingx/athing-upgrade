@@ -21,12 +21,9 @@ public class InformerImpl implements Informer {
     @Override
     public CompletableFuture<Void> inform(String moduleId, String version) {
         final var token = thing.op().genToken();
+        final var inform = new Inform(token, moduleId, version);
         return thing.op()
-                .data("/ota/device/inform/%s".formatted(thing.path().toURN()), new Inform(
-                        token,
-                        moduleId,
-                        version
-                ))
+                .data("/ota/device/inform/%s".formatted(thing.path().toURN()), inform)
                 .whenComplete(whenCompleted(
                         (v) -> logger.debug("{}/upgrade/inform success, token={};module={};version={};",
                                 thing.path(), token, moduleId, version),
