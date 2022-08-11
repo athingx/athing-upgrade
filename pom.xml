@@ -9,6 +9,16 @@
     <version>${revision}</version>
     <name>athing-upgrade</name>
     <url>https://github.com/athingx/athing-upgrade</url>
+    <developers>
+        <developer>
+            <id>oldmanpushcart</id>
+            <organization>athingx</organization>
+            <organizationUrl>https://github.com/athingx</organizationUrl>
+            <name>oldmanpushcart</name>
+            <email>oldmanpushcart@gmail.com</email>
+            <timezone>+8</timezone>
+        </developer>
+    </developers>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -92,5 +102,19 @@
     <modules>
         <module>athing-upgrade-thing</module>
     </modules>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/athingx/athing-upgrade</url>
+        </repository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/athingx/athing</url>
+        </repository>
+    </repositories>
 
 </project>
