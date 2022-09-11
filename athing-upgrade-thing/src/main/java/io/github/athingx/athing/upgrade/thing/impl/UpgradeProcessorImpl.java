@@ -33,7 +33,7 @@ public class UpgradeProcessorImpl implements UpgradeProcessor {
         current = step;
         final var token = thing.op().genToken();
         final var process = new Process(token, meta.moduleId(), step, desc);
-        thing.op().data("/ota/device/progress/%s/".formatted(thing.path().toURN()), process)
+        thing.op().post("/ota/device/progress/%s/".formatted(thing.path().toURN()), process)
                 .whenComplete(whenCompleted(
                         (v) -> logger.debug("{}/upgrade/process processing success, token={};module={};version={};step={};",
                                 thing.path(), token, meta.moduleId(), meta.version(), step),

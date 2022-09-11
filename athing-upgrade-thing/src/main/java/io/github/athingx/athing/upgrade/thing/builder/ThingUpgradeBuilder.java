@@ -39,8 +39,8 @@ public class ThingUpgradeBuilder {
 
         final var group = thing.op().binding();
         final var updater = new InformerImpl(thing);
-        group.bindFor(new PushOpBinder(thing, option, listeners, updater));
-        final var pullCallFuture = group.bindFor(new PullOpBinder(thing, option));
+        new PushOpBinder(thing, option, listeners, updater).bind(group);
+        final var pullCallFuture = new PullOpBinder(thing, option).bind(group);
 
         return group
                 .commit()

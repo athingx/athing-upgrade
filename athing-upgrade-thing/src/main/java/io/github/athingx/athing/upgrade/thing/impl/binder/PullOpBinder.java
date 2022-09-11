@@ -1,9 +1,9 @@
 package io.github.athingx.athing.upgrade.thing.impl.binder;
 
 import io.github.athingx.athing.thing.api.Thing;
+import io.github.athingx.athing.thing.api.op.OpBindable;
+import io.github.athingx.athing.thing.api.op.OpBinder;
 import io.github.athingx.athing.thing.api.op.OpCall;
-import io.github.athingx.athing.thing.api.op.OpGroupBinder;
-import io.github.athingx.athing.thing.api.op.OpGroupBinding;
 import io.github.athingx.athing.thing.api.op.OpReply;
 import io.github.athingx.athing.upgrade.thing.Upgrade;
 import io.github.athingx.athing.upgrade.thing.builder.ThingUpgradeOption;
@@ -18,7 +18,7 @@ import static io.github.athingx.athing.thing.api.function.ThingFn.mappingJsonFro
 import static io.github.athingx.athing.thing.api.function.ThingFn.mappingJsonToOpReply;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class PullOpBinder implements OpGroupBinder<OpCall<Pull, OpReply<Upgrade>>> {
+public class PullOpBinder implements OpBinder<OpCall<Pull, OpReply<Upgrade>>> {
 
     private final Thing thing;
     private final ThingUpgradeOption option;
@@ -29,8 +29,8 @@ public class PullOpBinder implements OpGroupBinder<OpCall<Pull, OpReply<Upgrade>
     }
 
     @Override
-    public CompletableFuture<OpCall<Pull, OpReply<Upgrade>>> bindFor(OpGroupBinding group) {
-        return group.binding("/sys/%s/thing/ota/firmware/get_reply".formatted(thing.path().toURN()))
+    public CompletableFuture<OpCall<Pull, OpReply<Upgrade>>> bind(OpBindable bindable) {
+        return bindable.binding("/sys/%s/thing/ota/firmware/get_reply".formatted(thing.path().toURN()))
                 .map(mappingJsonFromByte(UTF_8))
                 .map(mappingJsonToOpReply(Meta.class))
                 .call((topic, reply) -> OpReply.reply(
