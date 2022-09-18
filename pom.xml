@@ -101,6 +101,7 @@
 
     <modules>
         <module>athing-upgrade-thing</module>
+        <module>athing-upgrade-platform</module>
     </modules>
 
     <distributionManagement>
