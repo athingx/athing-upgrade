@@ -151,6 +151,7 @@ public class ThingUpgradeImpl implements ThingUpgrade, Runnable {
 
                                             final var step = (int) (downloaded * 70 / total);
                                             processor.processing(step, "downloading...");
+
                                         })
                                         .whenComplete((file, cause) -> {
                                             if (Objects.nonNull(cause)) {
