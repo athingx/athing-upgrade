@@ -1,6 +1,6 @@
 package io.github.athingx.athing.upgrade.thing.impl.binding;
 
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.github.athingx.athing.common.ThingCodes;
 import io.github.athingx.athing.thing.api.Thing;
@@ -9,16 +9,15 @@ import io.github.athingx.athing.thing.api.op.function.OpFunction;
 import io.github.athingx.athing.thing.api.util.MapData;
 import io.github.athingx.athing.upgrade.thing.ThingUpgradeOption;
 import io.github.athingx.athing.upgrade.thing.impl.Digger;
+import io.github.athingx.athing.upgrade.thing.impl.util.JsonObjectUtils;
 import io.github.athingx.athing.upgrade.thing.impl.util.SignUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
+import static io.github.athingx.athing.upgrade.thing.impl.util.JsonObjectUtils.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Optional.ofNullable;
 
 public class ThingOpBindingForDigger implements ThingOpBinding<Digger> {
 
@@ -75,6 +74,15 @@ public class ThingOpBindingForDigger implements ThingOpBinding<Digger> {
     private static OpFunction<byte[], OpReply<Digger.Response>> mappingBytesToResponseOpReply() {
 
         record Block(long fileLength, long bOffset, int bSize) {
+
+            static Block toBlock(JsonObject dataJson) {
+                return new Block(
+                        requireAsLong(dataJson, "fileLength"),
+                        requireAsLong(dataJson, "bOffset"),
+                        requireAsInt(dataJson, "bSize")
+                );
+            }
+
         }
 
         return (topic, data) -> {
@@ -90,20 +98,12 @@ public class ThingOpBindingForDigger implements ThingOpBinding<Digger> {
             // 解析响应
             final var root = JsonParser.parseString(json).getAsJsonObject();
             final var reply = new OpReply<Block>(
-                    ofNullable(root.get("id")).map(JsonElement::getAsString).orElseThrow(() -> new IllegalArgumentException("missing id")),
-                    ofNullable(root.get("code")).map(JsonElement::getAsInt).orElseThrow(() -> new IllegalArgumentException("missing code")),
-                    ofNullable(root.get("message")).map(JsonElement::getAsString).orElse(null),
-                    ofNullable(root.get("data"))
-                            .filter(element -> !element.getAsJsonObject().keySet().isEmpty())
-                            .map(element -> {
-                                final var dataJson = element.getAsJsonObject();
-                                return new Block(
-                                        ofNullable(dataJson.get("fileLength")).map(JsonElement::getAsLong).orElseThrow(() -> new IllegalArgumentException("missing data.fileLength")),
-                                        ofNullable(dataJson.get("bOffset")).map(JsonElement::getAsLong).orElseThrow(() -> new IllegalArgumentException("missing data.bOffset")),
-                                        ofNullable(dataJson.get("bSize")).map(JsonElement::getAsInt).orElseThrow(() -> new IllegalArgumentException("missing data.bSize"))
-                                );
-                            })
-                            .orElse(null)
+                    requireAsString(root, "id"),
+                    requireAsInt(root, "code"),
+                    getAsString(root, "message"),
+                    JsonObjectUtils.isNotEmptyProperty(root, "data")
+                            ? Block.toBlock(root.get("data").getAsJsonObject())
+                            : null
             );
 
             // 读取数据

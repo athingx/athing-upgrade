@@ -4,6 +4,9 @@ import com.google.gson.JsonObject;
 
 import java.net.URI;
 
+/**
+ * JSON对象工具类
+ */
 public class JsonObjectUtils {
 
     /**

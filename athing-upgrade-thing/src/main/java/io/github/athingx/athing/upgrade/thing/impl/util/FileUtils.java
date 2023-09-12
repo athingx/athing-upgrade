@@ -25,6 +25,8 @@ public class FileUtils {
             throw new IOException("create directory error!");
         }
 
+
+        // 如果文件不存在则创建文件，创建文件后仍然不存在则抛出异常
         if (!file.exists() && !file.createNewFile() || !file.exists()) {
             throw new IOException("create file error!");
         }
