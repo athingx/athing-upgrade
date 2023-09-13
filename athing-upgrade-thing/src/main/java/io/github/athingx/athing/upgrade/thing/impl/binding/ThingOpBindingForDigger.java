@@ -9,7 +9,6 @@ import io.github.athingx.athing.thing.api.op.function.OpFunction;
 import io.github.athingx.athing.thing.api.util.MapData;
 import io.github.athingx.athing.upgrade.thing.ThingUpgradeOption;
 import io.github.athingx.athing.upgrade.thing.impl.Digger;
-import io.github.athingx.athing.upgrade.thing.impl.util.JsonObjectUtils;
 import io.github.athingx.athing.upgrade.thing.impl.util.SignUtils;
 
 import java.nio.ByteBuffer;
@@ -38,7 +37,7 @@ public class ThingOpBindingForDigger implements ThingOpBinding<Digger> {
                 .caller(opOption, OpFunction.identity())
                 .thenApply(caller -> caller
                         .route(v -> topic)
-                        .compose(mappingRequestToOpData(thing.op().genToken()))
+                        .compose(mappingRequestToOpData(thing))
                         .then(OpReply::handle)
                 )
                 .thenApply(caller -> new Digger() {
@@ -54,21 +53,24 @@ public class ThingOpBindingForDigger implements ThingOpBinding<Digger> {
                 });
     }
 
-    private static Function<Digger.Request, OpData> mappingRequestToOpData(String token) {
-        return request -> new OpMapData(token, new MapData()
-                .putProperty("id", token)
-                .putProperty("version", "1.0")
-                .putProperty("params", prop -> prop
-                        .putProperty("fileInfo", infoP -> infoP
-                                .putProperty("streamId", request.streamId())
-                                .putProperty("fileId", request.fileId())
-                        )
-                        .putProperty("fileBlock", blockP -> blockP
-                                .putProperty("size", request.size())
-                                .putProperty("offset", request.position())
-                        )
-                )
-        );
+    private static Function<Digger.Request, OpData> mappingRequestToOpData(Thing thing) {
+        return request -> {
+            final var token = thing.op().genToken();
+            return new OpMapData(token, new MapData()
+                    .putProperty("id", token)
+                    .putProperty("version", "1.0")
+                    .putProperty("params", prop -> prop
+                            .putProperty("fileInfo", infoP -> infoP
+                                    .putProperty("streamId", request.streamId())
+                                    .putProperty("fileId", request.fileId())
+                            )
+                            .putProperty("fileBlock", blockP -> blockP
+                                    .putProperty("size", request.size())
+                                    .putProperty("offset", request.position())
+                            )
+                    )
+            );
+        };
     }
 
     private static OpFunction<byte[], OpReply<Digger.Response>> mappingBytesToResponseOpReply() {
@@ -87,9 +89,6 @@ public class ThingOpBindingForDigger implements ThingOpBinding<Digger> {
 
         return (topic, data) -> {
 
-            // 读取Json长度
-
-
             // 读取Json
             final var jsonOffset = 2;
             final var jsonLength = (short) ((data[0] << 8) | data[1]);
@@ -101,7 +100,7 @@ public class ThingOpBindingForDigger implements ThingOpBinding<Digger> {
                     requireAsString(root, "id"),
                     requireAsInt(root, "code"),
                     getAsString(root, "message"),
-                    JsonObjectUtils.isNotEmptyProperty(root, "data")
+                    isNotEmptyProperty(root, "data")
                             ? Block.toBlock(root.get("data").getAsJsonObject())
                             : null
             );

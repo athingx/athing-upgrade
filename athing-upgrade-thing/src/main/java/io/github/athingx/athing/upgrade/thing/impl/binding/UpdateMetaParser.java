@@ -31,6 +31,7 @@ class UpdateMetaParser {
                     "%s-%s.data".formatted(module, version),
                     requireAsUri(json, "url"),
                     requireAsLong(json, "size"),
+                    new UpgradeMeta.StoreMeta.Info(module, version),
                     new UpgradeMeta.StoreMeta.Sign(
                             requireAsString(json, "sign"),
                             requireAsString(json, "signMethod")
@@ -61,6 +62,7 @@ class UpdateMetaParser {
                     "%s-%s.data".formatted(module, version),
                     URI.create("mqtt://%s/%s".formatted(streamId, fileId)),
                     requireAsLong(json, "size"),
+                    new UpgradeMeta.StoreMeta.Info(module, version),
                     new UpgradeMeta.StoreMeta.Sign(
                             requireAsString(json, "sign"),
                             requireAsString(json, "signMethod")
@@ -90,6 +92,7 @@ class UpdateMetaParser {
                         requireAsString(fileJson, "fileName"),
                         requireAsUri(fileJson, "fileUrl"),
                         requireAsLong(fileJson, "fileSize"),
+                        new UpgradeMeta.StoreMeta.Info(module, version),
                         new UpgradeMeta.StoreMeta.Sign(
                                 requireAsString(fileJson, "fileSign"),
                                 requireAsString(json, "signMethod")

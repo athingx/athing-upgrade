@@ -2,8 +2,6 @@ package io.github.athingx.athing.upgrade.thing.impl;
 
 import java.util.concurrent.CompletableFuture;
 
-import static io.github.athingx.athing.upgrade.thing.impl.Processor.Step.STEP_UPGRADES_FAILURE;
-
 /**
  * 升级处理器，用来处理升级过程
  */
@@ -22,22 +20,6 @@ public interface Processor {
                 ? processing(pCause.getStep(), pCause.getLocalizedMessage())
                 : processing(def, cause.getLocalizedMessage());
     }
-
-    /**
-     * 获取当前步骤
-     *
-     * @return 当前步骤
-     */
-    int getCurrentStep();
-
-    /**
-     * 计算下载步骤
-     *
-     * @param offset 偏移量
-     * @param total  总大小
-     * @return 下载步骤
-     */
-    int computeDownloadStep(long offset, long total);
 
     /**
      * 过程步骤

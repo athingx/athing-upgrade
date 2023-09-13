@@ -4,7 +4,6 @@ import io.github.athingx.athing.thing.api.Thing;
 import io.github.athingx.athing.thing.api.ThingPath;
 import io.github.athingx.athing.thing.builder.ThingBuilder;
 import io.github.athingx.athing.thing.builder.client.DefaultMqttClientFactory;
-import io.github.athingx.athing.thing.builder.executor.ExecutorServiceFactory;
 import io.github.athingx.athing.upgrade.thing.ThingUpgrade;
 import io.github.athingx.athing.upgrade.thing.ThingUpgradeInstaller;
 import io.github.athingx.athing.upgrade.thing.Upgrade;
@@ -13,7 +12,9 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class ThingUpgradeSupport implements LoadingProperties {
 

@@ -2,7 +2,10 @@ package io.github.athingx.athing.upgrade.thing.impl;
 
 import io.github.athingx.athing.thing.api.Thing;
 import io.github.athingx.athing.upgrade.thing.ThingUpgradeOption;
-import io.github.athingx.athing.upgrade.thing.impl.util.*;
+import io.github.athingx.athing.upgrade.thing.impl.util.ExceptionUtils;
+import io.github.athingx.athing.upgrade.thing.impl.util.FileUtils;
+import io.github.athingx.athing.upgrade.thing.impl.util.IOUtils;
+import io.github.athingx.athing.upgrade.thing.impl.util.SignUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,15 +20,21 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.Flow;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 import static io.github.athingx.athing.upgrade.thing.impl.Processor.Step.*;
+import static io.github.athingx.athing.upgrade.thing.impl.util.ExceptionUtils.isCauseBy;
+import static io.github.athingx.athing.upgrade.thing.impl.util.FileUtils.isExistsFile;
+import static io.github.athingx.athing.upgrade.thing.impl.util.FileUtils.touchFile;
+import static io.github.athingx.athing.upgrade.thing.impl.util.StringUtils.equalsIgnoreCase;
+import static io.github.athingx.athing.upgrade.thing.impl.util.StringUtils.isInIgnoreCase;
+import static java.util.concurrent.CompletableFuture.delayedExecutor;
 
 public class DownloaderImpl implements Downloader {
 
+    private static final int DEFAULT_DOWNLOAD_BUFFER_SIZE = 1 << 17;
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Thing thing;
     private final ThingUpgradeOption option;
     private final Digger digger;
@@ -37,26 +46,59 @@ public class DownloaderImpl implements Downloader {
     }
 
     @Override
-    public CompletableFuture<File> download(UpgradeMeta meta, UpgradeMeta.StoreMeta sMeta, Downloading downloading) {
+    public CompletableFuture<File> download(UpgradeMeta.StoreMeta sMeta, Downloading downloading) {
 
         // 检查目标文件是否已经存在，如果已存在则直接返回
-        final var upgradeDataFile = toUpgradeFile(meta, sMeta);
-        if (FileUtils.isExistsFile(upgradeDataFile)) {
-            return CompletableFuture.completedFuture(upgradeDataFile);
+        final var upgradeDataFile = toUpgradeFile(sMeta);
+        if (isExistsFile(upgradeDataFile)) {
+
+            // 对已存在的文件进行校验
+            try {
+
+                // 校验成功
+                if (equalsIgnoreCase(sMeta.sign().code(), SignUtils.digest(sMeta.sign().type(), upgradeDataFile))) {
+                    logger.debug("{}/upgrade/download file existed and checksum success! exists={};",
+                            thing.path(),
+                            upgradeDataFile.getAbsolutePath()
+                    );
+                    return CompletableFuture.completedFuture(upgradeDataFile);
+                }
+
+                // 校验失败
+                else {
+                    logger.debug("{}/upgrade/download file existed but checksum failure! exists={};",
+                            thing.path(),
+                            upgradeDataFile.getAbsolutePath()
+                    );
+                }
+            }
+
+            // 校验异常
+            catch (Exception cause) {
+                logger.debug("{}/upgrade/download file exists but checksum occur error! exists={};",
+                        thing.path(),
+                        upgradeDataFile.getAbsolutePath(),
+                        cause
+                );
+            }
+
+            // 清理已存在文件
+            FileUtils.deleteQuietly(upgradeDataFile);
+
         }
 
         // 创建临时文件承接下载数据
         final var upgradeTempFile = new File(upgradeDataFile.getParentFile(), upgradeDataFile.getName() + ".downloading");
         try {
-            FileUtils.touchFile(upgradeTempFile);
+            touchFile(upgradeTempFile);
         } catch (IOException cause) {
             return CompletableFuture.failedFuture(new ProcessingException(STEP_WRITINGS_FAILURE, "create file error!", cause));
         }
 
         // 根据scheme选择对应的下载方案
         final var scheme = sMeta.uri().getScheme();
-        final var isHttp = StringUtils.isInIgnoreCase(scheme, "http", "https");
-        final var isMqtt = StringUtils.isInIgnoreCase(scheme, "mqtt");
+        final var isHttp = isInIgnoreCase(scheme, "http", "https");
+        final var isMqtt = isInIgnoreCase(scheme, "mqtt");
         final CompletableFuture<File> future;
         if (isHttp) {
             future = downloadByHttp(sMeta, upgradeTempFile, downloading);
@@ -73,7 +115,7 @@ public class DownloaderImpl implements Downloader {
                 final var sign = sMeta.sign();
                 final var except = sign.code();
                 final var actual = SignUtils.digest(sign.type(), file);
-                if (!StringUtils.equalsIgnoreCase(except, actual)) {
+                if (!equalsIgnoreCase(except, actual)) {
                     throw new ProcessingException(STEP_CHECKSUM_FAILURE, "checksum failure!");
                 }
             } catch (Exception cause) {
@@ -87,16 +129,14 @@ public class DownloaderImpl implements Downloader {
         });
     }
 
-    private File toUpgradeFile(UpgradeMeta meta, UpgradeMeta.StoreMeta sMeta) {
+    private File toUpgradeFile(UpgradeMeta.StoreMeta sMeta) {
         return new File(option.getUpgradeDir(), thing.path().getProductId()
                 + File.separator + thing.path().getThingId()
-                + File.separator + meta.module()
-                + File.separator + meta.version()
+                + File.separator + sMeta.info().module()
+                + File.separator + sMeta.info().version()
                 + File.separator + sMeta.name()
         );
     }
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private CompletableFuture<File> downloadByMqtt(final UpgradeMeta.StoreMeta sMeta,
                                                    final File upgradeTempFile,
@@ -105,10 +145,11 @@ public class DownloaderImpl implements Downloader {
         final var streamId = sMeta.uri().getHost();
         final var fileId = sMeta.uri().getPath().replaceFirst("/", "");
         final var total = sMeta.size();
-        final var size = (int) Math.min(option.getDownloadBufferSize(), total - position);
+        final var size = (int) Math.min(Math.min(option.getDownloadBufferSize(), DEFAULT_DOWNLOAD_BUFFER_SIZE), total - position);
+        final var executor = delayedExecutor(1000, TimeUnit.MILLISECONDS, thing.executor());
 
         return digger.download(new Digger.Request(streamId, fileId, total, position, size))
-                .thenCompose(response -> {
+                .thenComposeAsync(response -> {
 
                     final var buffer = response.buffer();
                     try (final var raf = new RandomAccessFile(upgradeTempFile, "rw");
@@ -129,10 +170,11 @@ public class DownloaderImpl implements Downloader {
                             ? downloadByMqtt(sMeta, upgradeTempFile, nextPosition, downloading)
                             : CompletableFuture.completedFuture(upgradeTempFile);
 
-                })
-                .exceptionallyCompose(cause -> {
+                }, executor)
+                .exceptionallyComposeAsync(cause -> {
+
                     // 超时异常进行重试
-                    if (ExceptionUtils.isCauseBy(cause, TimeoutException.class)) {
+                    if (isCauseBy(cause, TimeoutException.class)) {
                         logger.debug("{}/upgrade/download timeout, will be retry! streamId={};fileId={};position={};size={};",
                                 thing.path(),
                                 streamId,
@@ -147,8 +189,8 @@ public class DownloaderImpl implements Downloader {
                     else {
                         return CompletableFuture.failedFuture(cause);
                     }
-                })
-                ;
+
+                }, executor);
     }
 
     private CompletableFuture<File> downloadByHttp(final UpgradeMeta.StoreMeta sMeta,

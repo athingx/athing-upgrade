@@ -135,7 +135,7 @@ public class ThingUpgradeImpl implements ThingUpgrade, Runnable {
                         meta.extras(),
                         meta.stores().stream()
                                 .map(sMeta -> toUpgradeStore(sMeta, () -> downloader
-                                        .download(meta, sMeta, (sMetaTotal, sMetaDownloaded) -> {
+                                        .download(sMeta, (sMetaTotal, sMetaDownloaded) -> {
 
                                             final var storeDownloadedRef = storeDownloadedMap.get(sMeta.name());
                                             while (true) {
@@ -182,9 +182,10 @@ public class ThingUpgradeImpl implements ThingUpgrade, Runnable {
                                 // 升级完成
                                 else {
 
-                                    // 升级成功单独处理
+                                    // 升级成功单独处理，并通告模块最新版本
                                     if (state == UPGRADE_COMPLETED) {
                                         processor.processing(STEP_UPGRADES_COMPLETED, "upgrade completed!");
+                                        informer.inform(meta.module(), meta.version());
                                     }
 
                                     logger.debug("{}/upgrade apply completed! state={};module={};version={};",
