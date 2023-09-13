@@ -3,8 +3,6 @@ package io.github.athingx.athing.upgrade.thing.impl;
 import io.github.athingx.athing.thing.api.Thing;
 import io.github.athingx.athing.upgrade.thing.ThingUpgradeOption;
 import io.github.athingx.athing.upgrade.thing.impl.util.ExceptionUtils;
-import io.github.athingx.athing.upgrade.thing.impl.util.FileUtils;
-import io.github.athingx.athing.upgrade.thing.impl.util.IOUtils;
 import io.github.athingx.athing.upgrade.thing.impl.util.SignUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,8 +22,8 @@ import java.util.concurrent.*;
 
 import static io.github.athingx.athing.upgrade.thing.impl.Processor.Step.*;
 import static io.github.athingx.athing.upgrade.thing.impl.util.ExceptionUtils.isCauseBy;
-import static io.github.athingx.athing.upgrade.thing.impl.util.FileUtils.isExistsFile;
 import static io.github.athingx.athing.upgrade.thing.impl.util.FileUtils.touchFile;
+import static io.github.athingx.athing.upgrade.thing.impl.util.IOUtils.closeQuietly;
 import static io.github.athingx.athing.upgrade.thing.impl.util.StringUtils.equalsIgnoreCase;
 import static io.github.athingx.athing.upgrade.thing.impl.util.StringUtils.isInIgnoreCase;
 import static java.util.concurrent.CompletableFuture.delayedExecutor;
@@ -48,27 +46,30 @@ public class DownloaderImpl implements Downloader {
     @Override
     public CompletableFuture<File> download(UpgradeMeta.StoreMeta sMeta, Downloading downloading) {
 
+        // 目标文件
+        final var upgradeFile = toUpgradeFile(sMeta);
+
         // 检查目标文件是否已经存在，如果已存在则直接返回
-        final var upgradeDataFile = toUpgradeFile(sMeta);
-        if (isExistsFile(upgradeDataFile)) {
+        if (upgradeFile.exists()) {
 
             // 对已存在的文件进行校验
             try {
 
                 // 校验成功
-                if (equalsIgnoreCase(sMeta.sign().code(), SignUtils.digest(sMeta.sign().type(), upgradeDataFile))) {
+                final var sign = sMeta.sign();
+                if (equalsIgnoreCase(sign.code(), SignUtils.sign(sign.type(), upgradeFile))) {
                     logger.debug("{}/upgrade/download file existed and checksum success! exists={};",
                             thing.path(),
-                            upgradeDataFile.getAbsolutePath()
+                            upgradeFile.getAbsolutePath()
                     );
-                    return CompletableFuture.completedFuture(upgradeDataFile);
+                    return CompletableFuture.completedFuture(upgradeFile);
                 }
 
                 // 校验失败
                 else {
                     logger.debug("{}/upgrade/download file existed but checksum failure! exists={};",
                             thing.path(),
-                            upgradeDataFile.getAbsolutePath()
+                            upgradeFile.getAbsolutePath()
                     );
                 }
             }
@@ -77,18 +78,20 @@ public class DownloaderImpl implements Downloader {
             catch (Exception cause) {
                 logger.debug("{}/upgrade/download file exists but checksum occur error! exists={};",
                         thing.path(),
-                        upgradeDataFile.getAbsolutePath(),
+                        upgradeFile.getAbsolutePath(),
                         cause
                 );
             }
 
-            // 清理已存在文件
-            FileUtils.deleteQuietly(upgradeDataFile);
+            // 清理已存在文件，若清理失败则返回失败
+            if (!upgradeFile.delete()) {
+                return CompletableFuture.failedFuture(new ProcessingException(STEP_WRITINGS_FAILURE, "delete file error!"));
+            }
 
         }
 
         // 创建临时文件承接下载数据
-        final var upgradeTempFile = new File(upgradeDataFile.getParentFile(), upgradeDataFile.getName() + ".downloading");
+        final var upgradeTempFile = new File(upgradeFile.getParentFile(), upgradeFile.getName() + ".downloading");
         try {
             touchFile(upgradeTempFile);
         } catch (IOException cause) {
@@ -103,7 +106,7 @@ public class DownloaderImpl implements Downloader {
         if (isHttp) {
             future = downloadByHttp(sMeta, upgradeTempFile, downloading);
         } else if (isMqtt) {
-            future = downloadByMqtt(sMeta, upgradeTempFile, 0L, downloading);
+            future = downloadByMqtt(sMeta, upgradeTempFile, downloading);
         } else {
             future = CompletableFuture.failedFuture(new ProcessingException(STEP_UPGRADES_FAILURE, "unsupported scheme: %s".formatted(scheme)));
         }
@@ -111,10 +114,11 @@ public class DownloaderImpl implements Downloader {
         // 下载完成后需要将临时文件转为正式文件
         return future.thenApply(file -> {
 
+            // 校验下载文件的签名
             try {
                 final var sign = sMeta.sign();
                 final var except = sign.code();
-                final var actual = SignUtils.digest(sign.type(), file);
+                final var actual = SignUtils.sign(sign.type(), file);
                 if (!equalsIgnoreCase(except, actual)) {
                     throw new ProcessingException(STEP_CHECKSUM_FAILURE, "checksum failure!");
                 }
@@ -122,10 +126,12 @@ public class DownloaderImpl implements Downloader {
                 throw ExceptionUtils.wrapBy(ProcessingException.class, cause, () -> new ProcessingException(STEP_CHECKSUM_FAILURE, "checksum occur error!", cause));
             }
 
-            if (!file.renameTo(upgradeDataFile)) {
+            // 将下载临时文件转为正式文件
+            if (!file.renameTo(upgradeFile)) {
                 throw new ProcessingException(STEP_WRITINGS_FAILURE, "rename file error!");
             }
-            return upgradeDataFile;
+
+            return upgradeFile;
         });
     }
 
@@ -140,14 +146,26 @@ public class DownloaderImpl implements Downloader {
 
     private CompletableFuture<File> downloadByMqtt(final UpgradeMeta.StoreMeta sMeta,
                                                    final File upgradeTempFile,
-                                                   final long position,
                                                    final Downloading downloading) {
-        final var streamId = sMeta.uri().getHost();
-        final var fileId = sMeta.uri().getPath().replaceFirst("/", "");
-        final var total = sMeta.size();
-        final var size = (int) Math.min(Math.min(option.getDownloadBufferSize(), DEFAULT_DOWNLOAD_BUFFER_SIZE), total - position);
-        final var executor = delayedExecutor(1000, TimeUnit.MILLISECONDS, thing.executor());
+        return downloadByMqtt0(
+                sMeta.uri().getHost(),
+                sMeta.uri().getPath().replaceFirst("/", ""),
+                sMeta.size(),
+                delayedExecutor(1000, TimeUnit.MILLISECONDS, thing.executor()),
+                upgradeTempFile,
+                downloading,
+                0L
+        );
+    }
 
+    private CompletableFuture<File> downloadByMqtt0(final String streamId,
+                                                    final String fileId,
+                                                    final long total,
+                                                    final Executor executor,
+                                                    final File upgradeTempFile,
+                                                    final Downloading downloading,
+                                                    final long position) {
+        final var size = (int) Math.min(Math.min(option.getDownloadBufferSize(), DEFAULT_DOWNLOAD_BUFFER_SIZE), total - position);
         return digger.download(new Digger.Request(streamId, fileId, total, position, size))
                 .thenComposeAsync(response -> {
 
@@ -167,7 +185,7 @@ public class DownloaderImpl implements Downloader {
                     final var nextPosition = response.position() + size;
                     downloading.onDownload(total, nextPosition);
                     return nextPosition < total
-                            ? downloadByMqtt(sMeta, upgradeTempFile, nextPosition, downloading)
+                            ? downloadByMqtt0(streamId, fileId, total, executor, upgradeTempFile, downloading, nextPosition)
                             : CompletableFuture.completedFuture(upgradeTempFile);
 
                 }, executor)
@@ -182,7 +200,7 @@ public class DownloaderImpl implements Downloader {
                                 position,
                                 size
                         );
-                        return downloadByMqtt(sMeta, upgradeTempFile, position, downloading);
+                        return downloadByMqtt0(streamId, fileId, total, executor, upgradeTempFile, downloading, position);
                     }
 
                     // 其他异常则对外抛出
@@ -271,16 +289,17 @@ public class DownloaderImpl implements Downloader {
                 }
 
                 @Override
-                public void onError(Throwable ex) {
-                    future.completeExceptionally(ex instanceof ProcessingException cause
-                            ? cause
-                            : new ProcessingException(STEP_DOWNLOAD_FAILURE, "download error!", ex));
+                public void onError(Throwable cause) {
+                    future.completeExceptionally(ExceptionUtils.wrapBy(
+                            ProcessingException.class,
+                            cause,
+                            () -> new ProcessingException(STEP_DOWNLOAD_FAILURE, "download error!", cause)));
                     subscription.cancel();
                 }
 
                 @Override
                 public void onComplete() {
-                    IOUtils.closeQuietly(channel, raf);
+                    closeQuietly(channel, raf);
                     future.complete(file);
                 }
 

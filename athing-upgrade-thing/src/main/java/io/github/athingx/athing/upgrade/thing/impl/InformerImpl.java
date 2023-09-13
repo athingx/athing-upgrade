@@ -22,16 +22,20 @@ public class InformerImpl implements Informer {
         final var token = thing.op().genToken();
         final var data = new OpMapData(token, new MapData()
                 .putProperty("id", token)
-                .putProperty("params", prop->prop
+                .putProperty("params", prop -> prop
                         .putProperty("module", module)
                         .putProperty("version", version)
                 )
         );
         return thing.op()
                 .post("/ota/device/inform/%s".formatted(thing.path().toURN()), data)
-                .whenComplete((v, ex) ->
-                        logger.debug("{}/upgrade/inform completed, token={};module={};version={};",
-                                thing.path(), token, module, version, ex));
+                .whenComplete((v, ex) -> logger.debug("{}/upgrade/inform completed, token={};module={};version={};",
+                        thing.path(),
+                        token,
+                        module,
+                        version,
+                        ex
+                ));
     }
 
 }

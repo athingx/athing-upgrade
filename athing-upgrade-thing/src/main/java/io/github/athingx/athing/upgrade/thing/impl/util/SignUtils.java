@@ -35,7 +35,7 @@ public class SignUtils {
         return (short) ((ret[0] << 8) | ret[1]);
     }
 
-    public static String digest(String algorithm, File file) throws NoSuchAlgorithmException, IOException {
+    public static String sign(String algorithm, File file) throws NoSuchAlgorithmException, IOException {
 
         final String _algorithm;
         if ("SHA256".equalsIgnoreCase(algorithm) || "SHA-256".equalsIgnoreCase(algorithm)) {

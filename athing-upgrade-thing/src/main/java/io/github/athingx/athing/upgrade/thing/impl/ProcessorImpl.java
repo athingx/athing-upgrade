@@ -78,7 +78,13 @@ public class ProcessorImpl implements Processor {
                                 .putProperty("step", step)
                                 .putProperty("desc", desc)
                         )))
-                .whenComplete((v, ex) -> logger.debug("{}/upgrade/processing report completed! token={};step={};desc={};", thing.path(), token, step, desc, ex));
+                .whenComplete((v, cause) -> logger.debug("{}/upgrade/processing report completed! token={};step={};desc={};",
+                        thing.path(),
+                        token,
+                        step,
+                        desc,
+                        cause
+                ));
 
     }
 

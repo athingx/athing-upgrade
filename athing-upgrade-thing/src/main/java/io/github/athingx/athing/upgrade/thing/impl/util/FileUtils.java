@@ -74,7 +74,7 @@ public class FileUtils {
      * @return TRUE | FALSE
      */
     public static boolean deleteQuietly(File target) {
-        if (null == target || !target.canWrite() || !target.isFile()) {
+        if (!target.canWrite() || !target.isFile()) {
             return false;
         }
         if (!target.exists()) {

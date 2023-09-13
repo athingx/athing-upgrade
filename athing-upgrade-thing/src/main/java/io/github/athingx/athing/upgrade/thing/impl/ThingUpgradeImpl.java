@@ -114,7 +114,7 @@ public class ThingUpgradeImpl implements ThingUpgrade, Runnable {
                 final var processor = new ProcessorImpl(thing, meta.module());
 
                 // 需下载字节数
-                final var total = (Long) meta.stores().stream()
+                final var total = meta.stores().stream()
                         .map(UpgradeMeta.StoreMeta::size)
                         .mapToLong(Long::longValue)
                         .sum();
@@ -188,11 +188,11 @@ public class ThingUpgradeImpl implements ThingUpgrade, Runnable {
                                         informer.inform(meta.module(), meta.version());
                                     }
 
-                                    logger.debug("{}/upgrade apply completed! state={};module={};version={};",
+                                    logger.debug("{}/upgrade apply completed! module={};version={};state={};",
                                             thing.path(),
-                                            state,
                                             meta.module(),
-                                            meta.version()
+                                            meta.version(),
+                                            state
                                     );
 
                                 }
