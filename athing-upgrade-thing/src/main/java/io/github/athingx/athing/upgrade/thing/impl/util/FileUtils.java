@@ -1,8 +1,6 @@
 package io.github.athingx.athing.upgrade.thing.impl.util;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
