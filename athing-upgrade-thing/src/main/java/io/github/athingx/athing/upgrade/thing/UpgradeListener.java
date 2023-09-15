@@ -20,15 +20,4 @@ public interface UpgradeListener {
         UPGRADE_COMPLETED
     }
 
-    static UpgradeListener persist(UpgradeListener listener) {
-        return upgrade -> CompletableFuture.allOf(upgrade.stores().stream()
-                        .map(store -> store.persistence().persist(false))
-                        .toArray(CompletableFuture[]::new))
-                .thenCombine(listener.apply(upgrade), (v, s) -> s);
-    }
-
-    static UpgradeListener later() {
-        return upgrade -> CompletableFuture.completedFuture(State.UPGRADE_LATER);
-    }
-
 }

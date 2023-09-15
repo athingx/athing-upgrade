@@ -24,7 +24,7 @@ public class ThingUpgradeTestCase extends ThingUpgradeSupport {
             Assert.assertNotNull(store.uri());
             Assert.assertNotNull(store.name());
             Assert.assertTrue(store.total() > 0);
-            Assert.assertNotNull(store.persistence().persist(false).get());
+            Assert.assertNotNull(store.persistence().persist().get());
         }
     }
 

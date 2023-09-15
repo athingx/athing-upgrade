@@ -59,10 +59,9 @@ public record Upgrade(String module, String version, boolean isDiff, Trigger tri
             /**
              * 持久化存储
              *
-             * @param isFlush 是否刷新持久化操作；如果刷新则重新下载并覆盖原文件，否则直接返回原操作结果
              * @return 持久化文件操作
              */
-            CompletableFuture<File> persist(boolean isFlush);
+            CompletableFuture<File> persist();
 
         }
 

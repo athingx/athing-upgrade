@@ -219,20 +219,12 @@ public class ThingUpgradeImpl implements ThingUpgrade, Runnable {
     }
 
     private Upgrade.Store toUpgradeStore(UpgradeMeta.StoreMeta sMeta, Supplier<CompletableFuture<File>> supplier) {
-        return new Upgrade.Store(sMeta.name(), sMeta.uri(), sMeta.size(), new Upgrade.Store.Persistence() {
-
-            private final AtomicReference<CompletableFuture<File>> persistRef = new AtomicReference<>();
-
-            @Override
-            public synchronized CompletableFuture<File> persist(boolean isFlush) {
-                if (isFlush || Objects.isNull(persistRef.get())) {
-                    Optional.ofNullable(persistRef.getAndSet(supplier.get()))
-                            .ifPresent(persist -> persist.cancel(true));
-                }
-                return persistRef.get();
-            }
-
-        });
+        return new Upgrade.Store(
+                sMeta.name(),
+                sMeta.uri(),
+                sMeta.size(),
+                supplier::get
+        );
     }
 
 }
