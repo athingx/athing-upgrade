@@ -1,4 +1,6 @@
-package io.github.athingx.athing.upgrade.thing.impl;
+package io.github.athingx.athing.upgrade.thing.impl.downloader;
+
+import io.github.athingx.athing.upgrade.thing.impl.UpgradeMeta;
 
 import java.io.File;
 import java.util.concurrent.CompletableFuture;

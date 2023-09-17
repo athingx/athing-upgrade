@@ -5,6 +5,8 @@ import io.github.athingx.athing.upgrade.thing.ThingUpgrade;
 import io.github.athingx.athing.upgrade.thing.ThingUpgradeOption;
 import io.github.athingx.athing.upgrade.thing.Upgrade;
 import io.github.athingx.athing.upgrade.thing.UpgradeListener;
+import io.github.athingx.athing.upgrade.thing.impl.downloader.Downloader;
+import io.github.athingx.athing.upgrade.thing.impl.downloader.DownloaderImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -149,7 +151,7 @@ public class ThingUpgradeImpl implements ThingUpgrade, Runnable {
                                                     .mapToLong(AtomicLong::longValue)
                                                     .sum();
 
-                                            final var step = (int) (downloaded * 70 / total);
+                                            final var step = (int) (downloaded * STEP_DOWNLOAD_COMPLETED / total);
                                             processor.processing(step, "downloading...");
 
                                         })

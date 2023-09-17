@@ -1,5 +1,8 @@
 package io.github.athingx.athing.upgrade.thing.impl;
 
+import io.github.athingx.athing.upgrade.thing.impl.util.ExceptionUtils;
+
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -15,10 +18,10 @@ public interface Processor {
      */
     CompletableFuture<Void> processing(int step, String desc);
 
-    default CompletableFuture<Void> processing(Throwable cause, int def) {
-        return cause instanceof ProcessingException pCause
-                ? processing(pCause.getStep(), pCause.getLocalizedMessage())
-                : processing(def, cause.getLocalizedMessage());
+    default CompletableFuture<Void> processing(Throwable ex, int def) {
+        final var pCause = Optional.ofNullable(ExceptionUtils.getCauseBy(ex, ProcessingException.class))
+                .orElseGet(() -> new ProcessingException(def, ex.getLocalizedMessage()));
+        return processing(pCause.getStep(), pCause.getLocalizedMessage());
     }
 
     /**
