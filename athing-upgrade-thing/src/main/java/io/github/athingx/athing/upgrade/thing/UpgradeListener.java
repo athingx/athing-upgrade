@@ -15,8 +15,19 @@ public interface UpgradeListener {
      */
     CompletableFuture<State> apply(Upgrade upgrade);
 
+    /**
+     * 升级状态
+     */
     enum State {
+
+        /**
+         * 延后升级
+         */
         UPGRADE_LATER,
+
+        /**
+         * 升级完成
+         */
         UPGRADE_COMPLETED
     }
 

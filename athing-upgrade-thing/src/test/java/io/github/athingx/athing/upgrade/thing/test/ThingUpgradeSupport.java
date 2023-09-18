@@ -20,7 +20,7 @@ public class ThingUpgradeSupport implements LoadingProperties {
 
     protected static volatile Thing thing;
     protected static volatile ThingUpgrade thingUpgrade;
-    protected static final BlockingQueue<Upgrade> queue = new LinkedBlockingQueue<>();
+    protected static final BlockingQueue<UpgradeOp> queue = new LinkedBlockingQueue<>();
 
     @BeforeClass
     public static void _before() throws Exception {
@@ -31,15 +31,14 @@ public class ThingUpgradeSupport implements LoadingProperties {
                         .secret(THING_SECRET))
                 .build();
 
-        final var installer = new ThingUpgradeInstaller()
+        thingUpgrade = thing.install(new ThingUpgradeInstaller()
                 .listener(upgrade -> {
+                    final var future = new CompletableFuture<UpgradeListener.State>();
                     if (upgrade.trigger() == Upgrade.Trigger.PULL) {
-                        Assert.assertTrue(queue.offer(upgrade));
+                        Assert.assertTrue(queue.offer(new UpgradeOp(upgrade, future)));
                     }
-                    return CompletableFuture.completedFuture(UpgradeListener.State.UPGRADE_LATER);
-                });
-
-        thingUpgrade = thing.install(installer)
+                    return future;
+                }))
                 .get();
 
     }

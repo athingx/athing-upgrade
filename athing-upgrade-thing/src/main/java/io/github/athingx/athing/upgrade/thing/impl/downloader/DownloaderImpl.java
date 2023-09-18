@@ -102,6 +102,7 @@ public class DownloaderImpl implements Downloader {
                     if (!file.delete()) {
                         logger.warn("{}/upgrade/download delete file failure! file={};", thing.path(), file);
                     }
+                    logger.debug(">>> checksum failure! file={};", file, ex);
                     throw new ProcessingException(STEP_CHECKSUM_FAILURE, "checksum failure!");
                 })
 

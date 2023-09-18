@@ -152,7 +152,11 @@ public class ThingUpgradeImpl implements ThingUpgrade, Runnable {
                                                     .sum();
 
                                             final var step = (int) (downloaded * STEP_DOWNLOAD_COMPLETED / total);
-                                            processor.processing(step, "downloading...");
+                                            if (step == STEP_DOWNLOAD_COMPLETED) {
+                                                processor.processing(STEP_DOWNLOAD_COMPLETED, "download completed!");
+                                            } else {
+                                                processor.processing(step, "downloading...");
+                                            }
 
                                         })
                                         .whenComplete((file, cause) -> {
@@ -172,7 +176,7 @@ public class ThingUpgradeImpl implements ThingUpgrade, Runnable {
 
                                 // 升级失败
                                 if (Objects.nonNull(cause)) {
-                                    processor.processing(cause, STEP_UPGRADES_FAILURE);
+                                    processor.processing(cause, STEP_UPGRADES_FAILURE).join();
                                     logger.debug("{}/upgrade apply failure! module={};version={};",
                                             thing.path(),
                                             meta.module(),
@@ -186,8 +190,8 @@ public class ThingUpgradeImpl implements ThingUpgrade, Runnable {
 
                                     // 升级成功单独处理，并通告模块最新版本
                                     if (state == UPGRADE_COMPLETED) {
-                                        processor.processing(STEP_UPGRADES_COMPLETED, "upgrade completed!");
-                                        informer.inform(meta.module(), meta.version());
+                                        processor.processing(STEP_UPGRADES_COMPLETED, "upgrade completed!").join();
+                                        informer.inform(meta.module(), meta.version()).join();
                                     }
 
                                     logger.debug("{}/upgrade apply completed! module={};version={};state={};",

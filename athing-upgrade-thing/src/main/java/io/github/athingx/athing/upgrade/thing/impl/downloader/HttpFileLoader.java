@@ -15,13 +15,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static io.github.athingx.athing.upgrade.thing.impl.Processor.Step.STEP_DOWNLOAD_FAILURE;
 import static io.github.athingx.athing.upgrade.thing.impl.Processor.Step.STEP_WRITINGS_FAILURE;
@@ -39,7 +39,7 @@ record HttpFileLoader(Thing thing, ThingUpgradeOption option, URI uri, long tota
 
         final var request = HttpRequest.newBuilder(uri)
                 .timeout(Duration.ofMillis(option.getDownloadTimeoutMs()))
-                .header("Range", "bytes=%d-".formatted(target.length()))
+                .header("Range", "bytes=%s-".formatted(target.length()))
                 .build();
 
         return client.sendAsync(request, HttpResponse.BodyHandlers.buffering(new FileBodyHandler(total, target, loading), option.getDownloadBufferSize()))
@@ -61,7 +61,7 @@ record HttpFileLoader(Thing thing, ThingUpgradeOption option, URI uri, long tota
                 private Flow.Subscription subscription;
                 private RandomAccessFile raf;
                 private FileChannel channel;
-                private long position;
+                private final AtomicLong positionRef = new AtomicLong();
 
                 @Override
                 public CompletionStage<File> getBody() {
@@ -81,25 +81,33 @@ record HttpFileLoader(Thing thing, ThingUpgradeOption option, URI uri, long tota
                     this.subscription = subscription;
                     this.raf = openRandomAccessFile(file);
                     this.channel = raf.getChannel();
+                    this.positionRef.set(file.length());
+
+                    try {
+                        this.channel.position(positionRef.get());
+                    } catch (IOException e) {
+                        throw new ProcessingException(STEP_WRITINGS_FAILURE, "position file error!", e);
+                    }
+
                     subscription.request(1);
                 }
 
                 @Override
-                public void onNext(List<ByteBuffer> item) {
-                    item.forEach(buffer -> {
-                        try {
+                public void onNext(List<ByteBuffer> buffers) {
+                    try {
+                        for (final var buffer : buffers) {
                             final var remaining = buffer.remaining();
                             while (buffer.hasRemaining()) {
                                 if (channel.write(buffer) <= 0) {
                                     throw new IOException("write file error!");
                                 }
                             }
-                            position += remaining;
-                            loading.onLoaded(total, position);
-                        } catch (IOException e) {
-                            throw new ProcessingException(STEP_WRITINGS_FAILURE, "write file error!", e);
+                            positionRef.addAndGet(remaining);
                         }
-                    });
+                        loading.onLoaded(total, positionRef.get());
+                    } catch (IOException e) {
+                        throw new ProcessingException(STEP_WRITINGS_FAILURE, "write file error!", e);
+                    }
                     subscription.request(1);
                 }
 
