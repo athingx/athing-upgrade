@@ -9,8 +9,22 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * 升级包
+ *
+ * @param module  模块
+ * @param version 版本
+ * @param isDiff  是否差分包
+ * @param trigger 触发来源
+ * @param extras  附加信息
+ * @param stores  存储
  */
-public record Upgrade(String module, String version, boolean isDiff, Trigger trigger, Map<String, String> extras, Set<Store> stores) {
+public record Upgrade(
+        String module,
+        String version,
+        boolean isDiff,
+        Trigger trigger,
+        Map<String, String> extras,
+        Set<Store> stores
+) {
 
 
     /**

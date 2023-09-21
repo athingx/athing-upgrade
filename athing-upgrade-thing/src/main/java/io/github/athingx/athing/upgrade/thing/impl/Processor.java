@@ -1,12 +1,14 @@
 package io.github.athingx.athing.upgrade.thing.impl;
 
-import io.github.athingx.athing.upgrade.thing.impl.util.ExceptionUtils;
-
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import static io.github.athingx.athing.upgrade.thing.impl.util.ExceptionUtils.getCauseBy;
+
 /**
- * 升级处理器，用来处理升级过程
+ * 升级处理器
+ * <p>
+ * 用来处理升级过程
  */
 public interface Processor {
 
@@ -19,7 +21,8 @@ public interface Processor {
     CompletableFuture<Void> processing(int step, String desc);
 
     default CompletableFuture<Void> processing(Throwable ex, int def) {
-        final var pCause = Optional.ofNullable(ExceptionUtils.getCauseBy(ex, ProcessingException.class))
+        final var pCause = Optional
+                .ofNullable(getCauseBy(ex, ProcessingException.class))
                 .orElseGet(() -> new ProcessingException(def, ex.getLocalizedMessage()));
         return processing(pCause.getStep(), pCause.getLocalizedMessage());
     }

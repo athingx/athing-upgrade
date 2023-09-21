@@ -139,6 +139,7 @@ public class ThingUpgradeImpl implements ThingUpgrade, Runnable {
                                 .map(sMeta -> toUpgradeStore(sMeta, () -> downloader
                                         .download(sMeta, (sMetaTotal, sMetaDownloaded) -> {
 
+                                            // 记录单模块下载字节数
                                             final var storeDownloadedRef = storeDownloadedMap.get(sMeta.name());
                                             while (true) {
                                                 final var storeDownloaded = storeDownloadedRef.get();
@@ -147,10 +148,12 @@ public class ThingUpgradeImpl implements ThingUpgrade, Runnable {
                                                 }
                                             }
 
+                                            // 计算所有模块下载字节数
                                             final var downloaded = storeDownloadedMap.values().stream()
                                                     .mapToLong(AtomicLong::longValue)
                                                     .sum();
 
+                                            // 计算并报告下载进度
                                             final var step = (int) (downloaded * STEP_DOWNLOAD_COMPLETED / total);
                                             if (step == STEP_DOWNLOAD_COMPLETED) {
                                                 processor.processing(STEP_DOWNLOAD_COMPLETED, "download completed!");

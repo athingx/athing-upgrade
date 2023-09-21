@@ -8,6 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * 模块版本通告器实现
+ */
 public class InformerImpl implements Informer {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());

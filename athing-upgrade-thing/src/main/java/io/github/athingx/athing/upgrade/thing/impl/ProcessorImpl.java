@@ -11,6 +11,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
+/**
+ * 升级处理器实现
+ */
 public class ProcessorImpl implements Processor {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -47,8 +50,13 @@ public class ProcessorImpl implements Processor {
                 && latest.timestamp - expect.timestamp > 3000;
     }
 
-
-    record Report(int step, long timestamp) {
+    /**
+     * 上报信息
+     *
+     * @param step      进度
+     * @param timestamp 时间戳
+     */
+    private record Report(int step, long timestamp) {
 
     }
 
@@ -78,7 +86,7 @@ public class ProcessorImpl implements Processor {
                                 .putProperty("step", step)
                                 .putProperty("desc", desc)
                         )))
-                .whenComplete((v, cause) -> logger.debug("{}/upgrade/processing report completed! token={};step={};desc={};",
+                .whenComplete((v, cause) -> logger.debug("{}/upgrade/processing completed! token={};step={};desc={};",
                         thing.path(),
                         token,
                         step,
