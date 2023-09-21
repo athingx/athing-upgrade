@@ -10,12 +10,13 @@ import java.util.concurrent.CompletableFuture;
 /**
  * 升级包
  *
- * @param module  模块
- * @param version 版本
- * @param isDiff  是否差分包
- * @param trigger 触发来源
- * @param extras  附加信息
- * @param stores  存储
+ * @param module      模块
+ * @param version     版本
+ * @param isDiff      是否差分包
+ * @param trigger     触发来源
+ * @param extras      附加信息
+ * @param stores      存储
+ * @param application 升级应用
  */
 public record Upgrade(
         String module,
@@ -23,7 +24,8 @@ public record Upgrade(
         boolean isDiff,
         Trigger trigger,
         Map<String, String> extras,
-        Set<Store> stores
+        Set<Store> stores,
+        Application application
 ) {
 
 
@@ -72,13 +74,38 @@ public record Upgrade(
 
             /**
              * 持久化存储
+             * @param force 是否强制
              *
              * @return 持久化文件操作
              */
-            CompletableFuture<File> persist();
+            CompletableFuture<File> persist(boolean force);
 
         }
 
+
+    }
+
+    /**
+     * 升级应用
+     */
+    public interface Application {
+
+        /**
+         * 应用升级
+         */
+        void apply();
+
+        /**
+         * 升级错误
+         */
+        void error();
+
+        /**
+         * 升级错误
+         *
+         * @param cause 错误原因
+         */
+        void error(Throwable cause);
 
     }
 

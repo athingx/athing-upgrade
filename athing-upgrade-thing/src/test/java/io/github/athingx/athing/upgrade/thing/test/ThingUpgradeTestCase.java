@@ -1,7 +1,6 @@
 package io.github.athingx.athing.upgrade.thing.test;
 
 import io.github.athingx.athing.upgrade.thing.ThingUpgradeOption;
-import io.github.athingx.athing.upgrade.thing.UpgradeListener;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -50,17 +49,16 @@ public class ThingUpgradeTestCase extends ThingUpgradeSupport {
         Thread.sleep(1000 * 10L);
 
         thingUpgrade.update(module).get();
-        final var upgradeOp = queue.take();
-        final var upgrade = upgradeOp.upgrade();
+        final var upgrade = queue.take();
         Assert.assertEquals(module, upgrade.module());
         Assert.assertFalse(upgrade.stores().isEmpty());
         for (final var store : upgrade.stores()) {
             Assert.assertNotNull(store.uri());
             Assert.assertNotNull(store.name());
             Assert.assertTrue(store.total() > 0);
-            Assert.assertNotNull(store.persistence().persist().get());
+            Assert.assertNotNull(store.persistence().persist(true).get());
         }
-        upgradeOp.future().complete(UpgradeListener.State.UPGRADE_COMPLETED);
+        upgrade.application().apply();
     }
 
     @Test
