@@ -20,11 +20,6 @@ public class ThingUpgradeOption {
     private long downloadTimeoutMs = 1000L * 10;
 
     /**
-     * 下载升级文件线程数
-     */
-    private int downloadThreadNum = Runtime.getRuntime().availableProcessors() * 4;
-
-    /**
      * 下载升级文件缓冲区大小
      */
     private int downloadBufferSize = 1 << 17; //131072;
@@ -51,14 +46,6 @@ public class ThingUpgradeOption {
 
     public void setDownloadTimeoutMs(long downloadTimeoutMs) {
         this.downloadTimeoutMs = downloadTimeoutMs;
-    }
-
-    public int getDownloadThreadNum() {
-        return downloadThreadNum;
-    }
-
-    public void setDownloadThreadNum(int downloadThreadNum) {
-        this.downloadThreadNum = downloadThreadNum;
     }
 
     public int getDownloadBufferSize() {

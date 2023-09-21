@@ -35,26 +35,4 @@ public class SignUtils {
         return (short) ((ret[0] << 8) | ret[1]);
     }
 
-    public static String sign(String algorithm, File file) throws NoSuchAlgorithmException, IOException {
-
-        final String _algorithm;
-        if ("SHA256".equalsIgnoreCase(algorithm) || "SHA-256".equalsIgnoreCase(algorithm)) {
-            _algorithm = "SHA-256";
-        } else if ("MD5".equalsIgnoreCase(algorithm)) {
-            _algorithm = "MD5";
-        } else {
-            throw new NoSuchAlgorithmException("unsupported algorithm: " + algorithm);
-        }
-
-        final var digest = MessageDigest.getInstance(_algorithm);
-        try (final var fis = new FileInputStream(file)) {
-            final var buffer = new byte[1024];
-            int length;
-            while ((length = fis.read(buffer)) != -1) {
-                digest.update(buffer, 0, length);
-            }
-        }
-        return StringUtils.bytesToHexString(digest.digest());
-    }
-
 }
