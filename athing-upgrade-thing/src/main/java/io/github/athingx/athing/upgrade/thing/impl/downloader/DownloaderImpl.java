@@ -113,6 +113,7 @@ public class DownloaderImpl implements Downloader {
                     new HttpResourceLoader.Option() {{
                         setConnectTimeoutMs(option.getDownloadConnectTimeoutMs());
                         setTimeoutMs(option.getDownloadTimeoutMs());
+                        setBufferSize(option.getDownloadBufferSize());
                     }},
                     meta.uri()
             );
