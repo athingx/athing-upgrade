@@ -13,16 +13,16 @@ public interface Downloader {
     /**
      * 下载文件
      *
-     * @param sMeta       文件存储元数据
-     * @param downloading 下载进度
+     * @param meta        文件存储元数据
+     * @param progress 下载进度
      * @return 下载文件结果
      */
-    CompletableFuture<File> download(UpgradeMeta.StoreMeta sMeta, Downloading downloading);
+    CompletableFuture<File> download(UpgradeMeta.StoreMeta meta, Progress progress);
 
     /**
      * 下载进度
      */
-    interface Downloading {
+    interface Progress {
 
         /**
          * 下载中
@@ -30,7 +30,7 @@ public interface Downloader {
          * @param total      目标下载字节数
          * @param downloaded 已下载字节数
          */
-        void onDownload(long total, long downloaded);
+        void progressing(long total, long downloaded);
 
     }
 

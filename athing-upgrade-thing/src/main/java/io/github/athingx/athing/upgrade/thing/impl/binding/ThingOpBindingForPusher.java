@@ -31,7 +31,7 @@ public class ThingOpBindingForPusher implements ThingOpBinding<Pusher> {
         return thing.op().bind("/ota/device/upgrade/%s".formatted(thing.path().toURN()))
                 .map(mappingBytesToJson(UTF_8))
                 .map(mappingJsonToJsonObject())
-                .filter((topic, root) -> Objects.equals("1000", requireAsString(root, "code")))
+                .filter((topic, root) -> Objects.equals("1000", requireAsString(root, "checksum")))
                 .map((topic, root) -> root.get("data").getAsJsonObject())
                 .map((topic, data) -> parseUpgradeMeta(data, Upgrade.Trigger.PUSH))
                 .consumer((topic, meta) -> {
