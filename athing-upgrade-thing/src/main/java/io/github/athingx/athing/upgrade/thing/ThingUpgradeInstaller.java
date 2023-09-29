@@ -4,9 +4,9 @@ import io.github.athingx.athing.thing.api.Thing;
 import io.github.athingx.athing.thing.api.plugin.ThingPluginInstaller;
 import io.github.athingx.athing.upgrade.thing.impl.ThingUpgradeImpl;
 import io.github.athingx.athing.upgrade.thing.impl.UpgradeMeta;
-import io.github.athingx.athing.upgrade.thing.impl.binding.ThingOpBindingForDigger;
-import io.github.athingx.athing.upgrade.thing.impl.binding.ThingOpBindingForPuller;
-import io.github.athingx.athing.upgrade.thing.impl.binding.ThingOpBindingForPusher;
+import io.github.athingx.athing.upgrade.thing.impl.binding.OpBindingForDigger;
+import io.github.athingx.athing.upgrade.thing.impl.binding.OpBindingForPuller;
+import io.github.athingx.athing.upgrade.thing.impl.binding.OpBindingForPusher;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -37,9 +37,9 @@ public class ThingUpgradeInstaller implements ThingPluginInstaller<ThingUpgrade>
         Objects.requireNonNull(option, "option can not be null!");
         Objects.requireNonNull(listener, "listener can not be null!");
         final var queue = new LinkedBlockingQueue<UpgradeMeta>();
-        final var diggerF = new ThingOpBindingForDigger(option).bind(thing);
-        final var pullerF = new ThingOpBindingForPuller().bind(thing);
-        final var pusherF = new ThingOpBindingForPusher(queue).bind(thing);
+        final var diggerF = new OpBindingForDigger().bind(thing);
+        final var pullerF = new OpBindingForPuller().bind(thing);
+        final var pusherF = new OpBindingForPusher(queue).bind(thing);
         return CompletableFuture.allOf(diggerF, pusherF, pullerF)
                 .thenApply(v -> new ThingUpgradeImpl(
                         thing,

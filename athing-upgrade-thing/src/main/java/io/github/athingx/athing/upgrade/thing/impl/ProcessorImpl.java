@@ -1,7 +1,8 @@
 package io.github.athingx.athing.upgrade.thing.impl;
 
 import io.github.athingx.athing.thing.api.Thing;
-import io.github.athingx.athing.thing.api.op.OpMapData;
+import io.github.athingx.athing.thing.api.op.Encoder;
+import io.github.athingx.athing.thing.api.op.OpRequest;
 import io.github.athingx.athing.thing.api.util.MapData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
 /**
@@ -79,13 +81,14 @@ public class ProcessorImpl implements Processor {
         // 上报进度
         final var token = thing.op().genToken();
         return thing.op()
-                .post("/ota/device/progress/%s/".formatted(thing.path().toURN()), new OpMapData(token, new MapData()
-                        .putProperty("id", token)
-                        .putProperty("params", prop -> prop
+                .encode(Encoder.encodeJsonToBytes(UTF_8))
+                .encode(Encoder.encodeOpRequestToJson(MapData.class))
+                .post("/ota/device/progress/%s/".formatted(thing.path().toURN()),
+                        new OpRequest<>(token, new MapData()
                                 .putProperty("module", module)
                                 .putProperty("step", step)
                                 .putProperty("desc", desc)
-                        )))
+                        ))
                 .whenComplete((v, cause) -> logger.debug("{}/upgrade/processing completed! token={};step={};desc={};",
                         thing.path(),
                         token,

@@ -1,6 +1,6 @@
 package io.github.athingx.athing.upgrade.thing.impl;
 
-import io.github.athingx.athing.thing.api.op.ThingOpBinder;
+import io.github.athingx.athing.thing.api.op.OpBinder;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
@@ -8,7 +8,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * MQTT下载器
  */
-public interface Digger extends ThingOpBinder {
+public interface Digger extends OpBinder {
 
     /**
      * 下载

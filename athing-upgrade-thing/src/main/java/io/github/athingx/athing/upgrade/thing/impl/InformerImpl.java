@@ -1,12 +1,18 @@
 package io.github.athingx.athing.upgrade.thing.impl;
 
 import io.github.athingx.athing.thing.api.Thing;
+import io.github.athingx.athing.thing.api.op.Encoder;
 import io.github.athingx.athing.thing.api.op.OpMapData;
+import io.github.athingx.athing.thing.api.op.OpRequest;
 import io.github.athingx.athing.thing.api.util.MapData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
+
+import static io.github.athingx.athing.thing.api.op.Encoder.encodeJsonToBytes;
+import static io.github.athingx.athing.thing.api.op.Encoder.encodeOpRequestToJson;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * 模块版本通告器实现
@@ -23,15 +29,17 @@ public class InformerImpl implements Informer {
     @Override
     public CompletableFuture<Void> inform(String module, String version) {
         final var token = thing.op().genToken();
-        final var data = new OpMapData(token, new MapData()
-                .putProperty("id", token)
-                .putProperty("params", prop -> prop
+        final var request = new OpRequest<>(
+                thing.op().genToken(),
+                new MapData()
                         .putProperty("module", module)
                         .putProperty("version", version)
-                )
+
         );
         return thing.op()
-                .post("/ota/device/inform/%s".formatted(thing.path().toURN()), data)
+                .encode(encodeJsonToBytes(UTF_8))
+                .encode(encodeOpRequestToJson(MapData.class))
+                .post("/ota/device/inform/%s".formatted(thing.path().toURN()), request)
                 .whenComplete((v, ex) -> logger.debug("{}/upgrade/inform completed, token={};module={};version={};",
                         thing.path(),
                         token,
