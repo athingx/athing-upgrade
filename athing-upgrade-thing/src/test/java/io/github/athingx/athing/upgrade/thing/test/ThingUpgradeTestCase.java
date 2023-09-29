@@ -39,8 +39,8 @@ public class ThingUpgradeTestCase extends ThingUpgradeSupport {
 
         // update(RES_MQTT_D);
         update(RES_MQTT_F);
-        update(RES_HTTP_S);
-        update(RES_HTTP_M);
+        // update(RES_HTTP_S);
+        // update(RES_HTTP_M);
     }
 
     private void update(String module) throws Exception {

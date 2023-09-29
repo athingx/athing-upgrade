@@ -22,11 +22,13 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static io.github.athingx.athing.upgrade.thing.impl.Processor.Step.*;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class ThingUpgradeImpl implements ThingUpgrade, Runnable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Thing thing;
+    private final ThingUpgradeOption option;
     private final Digger digger;
     private final Puller puller;
     private final Pusher pusher;
@@ -46,6 +48,7 @@ public class ThingUpgradeImpl implements ThingUpgrade, Runnable {
                             final UpgradeListener listener) {
         this.thing = thing;
         this.queue = queue;
+        this.option = option;
         this.digger = digger;
         this.puller = puller;
         this.pusher = pusher;
@@ -60,12 +63,16 @@ public class ThingUpgradeImpl implements ThingUpgrade, Runnable {
 
     @Override
     public CompletableFuture<Void> inform(String module, String version) {
-        return informer.inform(module, version);
+        return informer
+                .inform(module, version)
+                .orTimeout(option.getTimeoutMs(), MILLISECONDS)
+                ;
     }
 
     @Override
     public CompletableFuture<Void> update(String module) {
         return puller.pull(module)
+                .orTimeout(option.getTimeoutMs(), MILLISECONDS)
                 .thenAccept(meta -> {
                     if (Objects.isNull(meta)) {
                         logger.debug("{}/upgrade not essential! module={};", thing.path(), module);

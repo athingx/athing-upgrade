@@ -67,6 +67,9 @@ public class MqttResourceLoader implements ResourceLoader {
     private <T> CompletableFuture<Digger.Response> load(Executor executor, long position, int retries, LoadingHandler<T> handler) {
         return digger.download(toRequest(position))
 
+                // 超时设置
+                .orTimeout(option.getTimeoutMs(), MILLISECONDS)
+
                 // 加载数据失败则进行重试，直到重试次数耗尽
                 .exceptionallyComposeAsync(ex -> {
                     if (retries < option.getRetries()) {
@@ -110,8 +113,17 @@ public class MqttResourceLoader implements ResourceLoader {
      */
     public static class Option {
 
+        private long timeoutMs = 30000;
         private long delayMs = 1000;
         private int retries = 3;
+
+        public long getTimeoutMs() {
+            return timeoutMs;
+        }
+
+        public void setTimeoutMs(long timeoutMs) {
+            this.timeoutMs = timeoutMs;
+        }
 
         public long getDelayMs() {
             return delayMs;

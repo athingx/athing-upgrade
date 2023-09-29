@@ -124,6 +124,7 @@ public class DownloaderImpl implements Downloader {
             return new MqttResourceLoader(
                     digger,
                     new MqttResourceLoader.Option() {{
+                        setTimeoutMs(option.getTimeoutMs());
                         setDelayMs(1000L);
                         setRetries(3);
                     }},

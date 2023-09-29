@@ -10,6 +10,11 @@ public class ThingUpgradeOption {
     private File upgradeDir = new File("./upgrade");
 
     /**
+     * 请求超时时间
+     */
+    private long timeoutMs = 3000L;
+
+    /**
      * 下载升级文件连接超时时间
      */
     private long downloadConnectTimeoutMs = 1000L * 10;
@@ -30,6 +35,14 @@ public class ThingUpgradeOption {
 
     public void setUpgradeDir(File upgradeDir) {
         this.upgradeDir = upgradeDir;
+    }
+
+    public long getTimeoutMs() {
+        return timeoutMs;
+    }
+
+    public void setTimeoutMs(long timeoutMs) {
+        this.timeoutMs = timeoutMs;
     }
 
     public long getDownloadConnectTimeoutMs() {
