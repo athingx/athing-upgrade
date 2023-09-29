@@ -1,8 +1,6 @@
 package io.github.athingx.athing.upgrade.thing.impl;
 
 import io.github.athingx.athing.thing.api.Thing;
-import io.github.athingx.athing.thing.api.op.Encoder;
-import io.github.athingx.athing.thing.api.op.OpMapData;
 import io.github.athingx.athing.thing.api.op.OpRequest;
 import io.github.athingx.athing.thing.api.util.MapData;
 import org.slf4j.Logger;
