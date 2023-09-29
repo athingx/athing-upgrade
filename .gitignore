@@ -29,3 +29,4 @@ target/
 
 ## for maven
 .flattened-pom.xml
+/athing-upgrade-thing/upgrade/
