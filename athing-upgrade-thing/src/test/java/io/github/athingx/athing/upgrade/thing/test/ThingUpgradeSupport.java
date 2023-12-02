@@ -29,7 +29,7 @@ public class ThingUpgradeSupport implements LoadingProperties {
                         .secret(THING_SECRET))
                 .build();
 
-        thingUpgrade = thing.install(new ThingUpgradeInstaller()
+        thingUpgrade = thing.plugins().install(new ThingUpgradeInstaller()
                         .listener(upgrade -> {
                             if (upgrade.trigger() == Upgrade.Trigger.PULL) {
                                 Assert.assertTrue(queue.offer(upgrade));
