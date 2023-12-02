@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface ThingUpgrade extends ThingPlugin {
 
-    String THING_UPGRADE_ID = "athingx.thing.upgrade";
+    String PLUGIN_ID = "athingx.thing.upgrade";
 
     /**
      * 通告模块

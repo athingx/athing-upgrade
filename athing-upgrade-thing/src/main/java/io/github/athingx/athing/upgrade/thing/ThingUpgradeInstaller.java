@@ -29,7 +29,7 @@ public class ThingUpgradeInstaller implements ThingPluginInstaller<ThingUpgrade>
 
     @Override
     public Meta<ThingUpgrade> meta() {
-        return new Meta<>(ThingUpgrade.THING_UPGRADE_ID, ThingUpgrade.class);
+        return new Meta<>(ThingUpgrade.PLUGIN_ID, ThingUpgrade.class);
     }
 
     @Override
